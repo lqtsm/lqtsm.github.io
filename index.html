@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Laboratório de Química Teórica e Simulação Molecular (LQTSM) da UERJ.">
+    <title>LQTSM - UERJ | Início</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
+
+    <header class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="flex items-center gap-2 group">
+                        <i data-lucide="atom" class="h-8 w-8 text-blue-600 group-hover:rotate-180 transition-transform duration-700"></i>
+                        <span class="font-bold text-2xl tracking-tight text-slate-800">LQTSM</span>
+                    </a>
+                </div>
+
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="index.html" class="px-3 py-2 rounded-md text-sm transition-colors text-blue-600 font-bold bg-blue-50">Início</a>
+                    <a href="equipe.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Equipe</a>
+                    <a href="pesquisa.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Pesquisa</a>
+                    <a href="publicacoes.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Publicações</a>
+                    <a href="contato.html" class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ml-4">Contato</a>
+                </nav>
+
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900 p-2 focus:outline-none">
+                        <i data-lucide="menu" class="h-8 w-8"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+            <nav class="px-4 pt-2 pb-4 space-y-2">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">Início</a>
+                <a href="equipe.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Equipe</a>
+                <a href="pesquisa.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Pesquisa</a>
+                <a href="publicacoes.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Publicações</a>
+                <a href="contato.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 font-bold mt-4">Contato</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <section class="relative min-h-screen flex items-center justify-center">
+            <div class="absolute inset-0 z-0">
+                <img src="https://images.pexels.com/photos/3861964/pexels-photo-3861964.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Simulação Molecular" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-gray-900/90"></div>
+            </div>
+
+            <div class="relative z-10 w-full max-w-5xl px-4 text-center mt-16">
+                <div class="bg-black/30 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-white/10 shadow-2xl">
+                    <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-blue-200 mb-6 drop-shadow-sm">LQTSM</h1>
+                    <p class="text-xl md:text-2xl text-gray-100 max-w-3xl mx-auto mb-2 font-light">Laboratório de Química Teórica e Simulação Molecular</p>
+                    <p class="text-blue-200 font-medium tracking-wide uppercase text-sm mb-8">Universidade do Estado do Rio de Janeiro (UERJ)</p>
+                    <div class="w-24 h-1 bg-blue-500 mx-auto mb-8 rounded-full"></div>
+                    <div class="text-gray-200 text-lg md:text-xl space-y-4 max-w-2xl mx-auto leading-relaxed font-light">
+                        <p>Grupo de pesquisa que se dedica a modelar sistemas de interesse acadêmico e aplicado, usando cálculos quânticos e simulações clássicas.</p>
+                    </div>
+
+                    <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                        <a href="equipe.html" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-400/30">
+                            <i data-lucide="users" class="w-8 h-8 text-blue-300 mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+                            <span class="block text-white font-semibold tracking-wide">Equipe</span>
+                        </a>
+                        <a href="pesquisa.html" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-400/30">
+                            <i data-lucide="microscope" class="w-8 h-8 text-blue-300 mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+                            <span class="block text-white font-semibold tracking-wide">Pesquisa</span>
+                        </a>
+                        <a href="publicacoes.html" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-400/30">
+                            <i data-lucide="file-text" class="w-8 h-8 text-blue-300 mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+                            <span class="block text-white font-semibold tracking-wide">Publicações</span>
+                        </a>
+                        <a href="contato.html" class="group bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-400">
+                            <i data-lucide="mail" class="w-8 h-8 text-blue-300 mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+                            <span class="block text-white font-semibold tracking-wide">Contato</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-300 py-8 text-center text-sm border-t border-gray-800 mt-auto">
+        <p>© 2025 LQTSM - UERJ. Instituto de Química.</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        if(btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+    </script>
+</body>
+</html>

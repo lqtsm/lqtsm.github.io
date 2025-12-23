@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicações | LQTSM - UERJ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
+
+    <header class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="flex items-center gap-2 group">
+                        <i data-lucide="atom" class="h-8 w-8 text-blue-600 group-hover:rotate-180 transition-transform duration-700"></i>
+                        <span class="font-bold text-2xl tracking-tight text-slate-800">LQTSM</span>
+                    </a>
+                </div>
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Início</a>
+                    <a href="equipe.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Equipe</a>
+                    <a href="pesquisa.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Pesquisa</a>
+                    <a href="publicacoes.html" class="px-3 py-2 rounded-md text-sm transition-colors text-blue-600 font-bold bg-blue-50">Publicações</a>
+                    <a href="contato.html" class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ml-4">Contato</a>
+                </nav>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900 p-2 focus:outline-none"><i data-lucide="menu" class="h-8 w-8"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+            <nav class="px-4 pt-2 pb-4 space-y-2">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Início</a>
+                <a href="equipe.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Equipe</a>
+                <a href="pesquisa.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Pesquisa</a>
+                <a href="publicacoes.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">Publicações</a>
+                <a href="contato.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 font-bold mt-4">Contato</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-20">
+        <section class="relative h-72 flex items-center justify-center text-center text-white px-4">
+            <div class="absolute inset-0">
+                <img src="https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Publicações" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
+            </div>
+            <div class="relative z-10">
+                <i data-lucide="book-open" class="mx-auto mb-4 w-12 h-12 text-blue-300"></i>
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Produção Científica</h1>
+                <p class="text-lg text-gray-200">Nossa contribuição para a comunidade científica.</p>
+            </div>
+        </section>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="flex justify-center flex-wrap gap-2 mb-12 sticky top-24 z-30 bg-gray-50/95 py-4 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
+                <div id="year-filters" class="flex flex-wrap justify-center gap-2"></div>
+            </div>
+            <div id="publications-list" class="space-y-4 max-w-5xl mx-auto"></div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-300 py-8 text-center text-sm border-t border-gray-800 mt-auto">
+        <p>© 2025 LQTSM - UERJ. Instituto de Química.</p>
+    </footer>
+
+    <script>
+        const publications = [
+            { year: 2025, title: "Quantum Chemical NMR Spectroscopic Structural Analysis in Solution: The Investigation of 3-Indoleacetic Acid Dimer Formation in Chloroform and DMSO Solution", doi: "https://doi.org/10.1002/mrc.5511" },
+            { year: 2025, title: "Modeling Solvent Effects in Quantum Chemical Calculation of Relative Energies and NMR Chemical Shifts for Azithromycin", doi: "https://doi.org/10.1021/acs.jpca.4c08015" },
+            { year: 2025, title: "Determination of the Preferred Stereoisomer of Natural Product Bisabolol in Chloroform Solution through Quantum Chemical Calculations of 1 H NMR Chemical Shifts", doi: "https://doi.org/10.1021/acsomega.5c07923" },
+            { year: 2025, title: "Understanding the relationship between experimental solubilities of organic compounds and density functional theory calculations of solvation energies", doi: "https://doi.org/10.1016/j.molliq.2025.128982" },
+            { year: 2024, title: "On the use OF H-NMR chemical shifts and thermodynamic data for the prediction of the predominant conformation of organic molecules in solution: the example of the flavonoid rutin", doi: "https://doi.org/10.1039/D4RA03430A" },
+            { year: 2023, title: "Quantum Chemical Investigation of the Interaction of Thalidomide Monomeric, Dimeric, Trimeric, and Tetrameric Forms with Guanine DNA Nucleotide Basis in DMSO and Water Solution: A Thermodynamic and NMR Spectroscopy Analysis", doi: "https://doi.org/10.1021/acsomega.3c05922" },
+            { year: 2023, title: "Quantum chemical investigation of predominant conformation of the antibiotic azithromycin in water and DMSO solutions: thermodynamic and NMR analysis", doi: "https://doi.org/10.1098/rsos.230409" },
+            { year: 2022, title: "Theoretical Investigation of Regiodivergent Addition of Anilines and Phenolates to p-Benzoquinone Ring", doi: "https://doi.org/10.1021/acsomega.2c04607" },
+            { year: 2022, title: "An investigation of the predominant structure of antibiotic azithromycin in chloroform solution through NMR and thermodynamic analysis", doi: "https://doi.org/10.1039/D2CP02843C" },
+            { year: 2021, title: "Quantum chemical investigation of beta-CD–catechin flavonoid encapsulation in solution through NMR analysis: an adequate controlled drug-delivery system", doi: "https://doi.org/10.1039/D1NJ02756E" },
+            { year: 2021, title: "Unveiling the Molecular Structure of Antimalarial Drugs Chloroquine and Hydroxychloroquine in Solution through Analysis of H NMR Chemical Shifts", doi: "https://doi.org/10.1021/acs.jpcb.1c00609" },
+            { year: 2021, title: "Thermodynamic and structural description of relative solubility of the flavonoid rutin by DFT calculations and molecular dynamics simulations", doi: "https://doi.org/10.1016/j.molliq.2021.117214" },
+            { year: 2020, title: "Structure of the flavonoid catechin in solution: NMR and quantum chemical investigations", doi: "https://doi.org/10.1039/D0NJ03251D" },
+            { year: 2020, title: "Conformational Analysis of 5,4'-Dihydroxy-7,5',3'-trimethoxyisoflavone in Solution Using 1 H NMR: A Density Functional Theory Approach", doi: "https://doi.org/10.1021/acs.jpca.0c02996" },
+            { year: 2020, title: "Determination of Anticancer Zn(II)-Rutin Complex Structures in Solution through Density Functional Theory Calculations of 1 H NMR and UV-VIS Spectra", doi: "https://doi.org/10.1021/acsomega.9b04174" },
+            { year: 2020, title: "A theoretical investigation on the encapsulation process of mepivacaine into β-cyclodextrin", doi: "https://doi.org/10.1016/j.cplett.2019.137060" },
+            { year: 2020, title: "Theoretical calculations of 1H NMR chemical shifts for nitrogenated compounds in chloroform solution", doi: "https://doi.org/10.1016/j.chemphys.2019.110479" },
+            { year: 2020, title: "Crystal Structure and 1H NMR Experimental and Theoretical Study of Conformers of 5-Methyl-1-(4'-methylphenylsulfonylamino)-1H-[1,2,3]-triazole-4-carboxylic Acid Ethyl Ester and 5-Methyl-1-(phenylsulfonylamino)-1H-[1,2,3]-triazole-4-carboxylic Acid Ethyl Ester", doi: "http://dx.doi.org/10.21577/0103-5053.20190249" },
+            { year: 2018, title: "Structural Determination of Antioxidant and Anticancer Flavonoid Rutin in Solution through DFT Calculations of 1 H-NMR Chemical Shifts", doi: "https://doi.org/10.1002/open.201800209" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const btn=document.getElementById('mobile-menu-btn'), menu=document.getElementById('mobile-menu');
+            if(btn&&menu)btn.addEventListener('click',()=>menu.classList.toggle('hidden'));
+
+            const listEl = document.getElementById('publications-list');
+            const filtersEl = document.getElementById('year-filters');
+            let currentYear = 'all';
+
+            const years = [...new Set([2026, ...publications.map(p => p.year)])].sort((a,b) => b - a);
+            
+            const createBtn = (label, value) => {
+                const btn = document.createElement('button');
+                btn.className = `px-5 py-2 rounded-full text-sm font-bold transition-all duration-200 border shadow-sm ${value === currentYear ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'}`;
+                btn.textContent = label;
+                btn.onclick = () => filter(value);
+                return btn;
+            };
+
+            const renderFilters = () => {
+                filtersEl.innerHTML = '';
+                filtersEl.appendChild(createBtn('Todos', 'all'));
+                years.forEach(y => filtersEl.appendChild(createBtn(y, y)));
+            };
+
+            const filter = (year) => {
+                currentYear = year;
+                renderFilters();
+                const filtered = year === 'all' ? publications : publications.filter(p => p.year === year);
+                filtered.sort((a, b) => b.year - a.year); 
+
+                if (filtered.length === 0) {
+                    listEl.innerHTML = '<div class="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-100 shadow-sm">Ainda não há publicações registradas para este ano.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = filtered.map(pub => `
+                    <article class="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-300 border border-gray-100 transition-all duration-300 fade-in flex flex-col md:flex-row gap-5 items-start md:items-center group">
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center justify-center w-16 h-10 bg-blue-50 text-blue-700 text-sm font-bold rounded-lg border border-blue-100">${pub.year}</span>
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="text-gray-800 font-medium text-lg leading-snug group-hover:text-blue-700 transition-colors">${pub.title}</h3>
+                        </div>
+                        <div class="flex-shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                            <a href="${pub.doi}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 w-full md:w-auto px-5 py-2.5 bg-white text-gray-700 font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-200 text-sm border border-gray-200 hover:border-blue-600 shadow-sm">
+                                <span>Acessar</span><i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </article>
+                `).join('');
+                lucide.createIcons();
+            };
+            filter('all');
+        });
+    </script>
+</body>
+</html>

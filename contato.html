@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato | LQTSM - UERJ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>.glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }</style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
+
+    <header class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="flex items-center gap-2 group">
+                        <i data-lucide="atom" class="h-8 w-8 text-blue-600 group-hover:rotate-180 transition-transform duration-700"></i>
+                        <span class="font-bold text-2xl tracking-tight text-slate-800">LQTSM</span>
+                    </a>
+                </div>
+                <nav class="hidden md:flex space-x-8 items-center">
+                    <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Início</a>
+                    <a href="equipe.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Equipe</a>
+                    <a href="pesquisa.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Pesquisa</a>
+                    <a href="publicacoes.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Publicações</a>
+                    <a href="contato.html" class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ml-4">Contato</a>
+                </nav>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900 p-2 focus:outline-none"><i data-lucide="menu" class="h-8 w-8"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+            <nav class="px-4 pt-2 pb-4 space-y-2">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Início</a>
+                <a href="equipe.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Equipe</a>
+                <a href="pesquisa.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Pesquisa</a>
+                <a href="publicacoes.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Publicações</a>
+                <a href="contato.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 font-bold mt-4">Contato</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="text-center mb-16">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">Fale Conosco</h1>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Estamos no campus Maracanã da UERJ.</p>
+                <div class="w-20 h-1.5 bg-blue-600 mx-auto mt-6 rounded-full"></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+                <address class="space-y-10 not-italic">
+                    <div class="flex gap-5 group">
+                        <div class="flex-shrink-0 w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm"><i data-lucide="user" class="w-7 h-7"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">Coordenação</h3>
+                            <p class="text-gray-700 font-medium">Prof. Dr. Haroldo Candal</p>
+                            <a href="http://lattes.cnpq.br/0841126231630553" target="_blank" class="inline-flex items-center mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"><i data-lucide="file-text" class="w-4 h-4 mr-1"></i> Currículo Lattes</a>
+                        </div>
+                    </div>
+                    <div class="flex gap-5 group">
+                        <div class="flex-shrink-0 w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm"><i data-lucide="mail" class="w-7 h-7"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">E-mail</h3>
+                            <p class="text-gray-500 text-sm mb-2">Para dúvidas acadêmicas.</p>
+                            <a href="mailto:haroldo.candal@uerj.br" class="text-lg text-blue-600 hover:text-blue-800 font-semibold underline decoration-blue-200 hover:decoration-blue-800 transition-all">haroldo.candal@uerj.br</a>
+                        </div>
+                    </div>
+                    <div class="flex gap-5 group">
+                        <div class="flex-shrink-0 w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm"><i data-lucide="map-pin" class="w-7 h-7"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">Localização</h3>
+                            <p class="text-gray-600 leading-relaxed"><strong>UERJ - Campus Maracanã</strong><br>Instituto de Química, Sala 401<br>Pavilhão Haroldo Lisboa da Cunha<br>R. São Francisco Xavier, 524 - Maracanã</p>
+                        </div>
+                    </div>
+                </address>
+                <div class="h-[500px] w-full bg-gray-200 rounded-3xl overflow-hidden shadow-2xl border-4 border-white rotate-1 hover:rotate-0 transition-transform duration-500">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3675.3576679267766!2d-43.23619768503444!3d-22.914068985008063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x997e686c12e759%3A0x6295240217983c22!2sUniversidade%20do%20Estado%20do%20Rio%20de%20Janeiro!5e0!3m2!1spt-BR!2sbr!4v1625684725458!5m2!1spt-BR!2sbr" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" title="Mapa de Localização"></iframe>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-300 py-8 text-center text-sm border-t border-gray-800 mt-auto">
+        <p>© 2025 LQTSM - UERJ. Instituto de Química.</p>
+    </footer>
+    <script>lucide.createIcons(); const btn=document.getElementById('mobile-menu-btn'),menu=document.getElementById('mobile-menu');if(btn&&menu)btn.addEventListener('click',()=>menu.classList.toggle('hidden'));</script>
+</body>
+</html>
