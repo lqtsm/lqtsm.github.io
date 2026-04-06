@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesquisa | LQTSM - UERJ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>.glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }</style>
+    <style>
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
 
     <header class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
@@ -15,29 +23,41 @@
             <div class="flex justify-between items-center h-20">
                 <div class="flex-shrink-0">
                     <a href="index.html" class="flex items-center gap-2 group">
-                        <i data-lucide="atom" class="h-8 w-8 text-blue-600 group-hover:rotate-180 transition-transform duration-700"></i>
+                        <i data-lucide="atom"
+                            class="h-8 w-8 text-blue-600 group-hover:rotate-180 transition-transform duration-700"></i>
                         <span class="font-bold text-2xl tracking-tight text-slate-800">LQTSM</span>
                     </a>
                 </div>
                 <nav class="hidden md:flex space-x-8 items-center">
-                    <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Início</a>
-                    <a href="equipe.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Equipe</a>
-                    <a href="pesquisa.html" class="px-3 py-2 rounded-md text-sm transition-colors text-blue-600 font-bold bg-blue-50">Pesquisa</a>
-                    <a href="publicacoes.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Publicações</a>
-                    <a href="contato.html" class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ml-4">Contato</a>
+                    <a href="index.html"
+                        class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Início</a>
+                    <a href="equipe.html"
+                        class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Equipe</a>
+                    <a href="pesquisa.html"
+                        class="px-3 py-2 rounded-md text-sm transition-colors text-blue-600 font-bold bg-blue-50">Pesquisa</a>
+                    <a href="publicacoes.html"
+                        class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-blue-600">Publicações</a>
+                    <a href="contato.html"
+                        class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ml-4">Contato</a>
                 </nav>
                 <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900 p-2 focus:outline-none"><i data-lucide="menu" class="h-8 w-8"></i></button>
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900 p-2 focus:outline-none"><i
+                            data-lucide="menu" class="h-8 w-8"></i></button>
                 </div>
             </div>
         </div>
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
             <nav class="px-4 pt-2 pb-4 space-y-2">
-                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Início</a>
-                <a href="equipe.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Equipe</a>
-                <a href="pesquisa.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">Pesquisa</a>
-                <a href="publicacoes.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Publicações</a>
-                <a href="contato.html" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 font-bold mt-4">Contato</a>
+                <a href="index.html"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Início</a>
+                <a href="equipe.html"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Equipe</a>
+                <a href="pesquisa.html"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">Pesquisa</a>
+                <a href="publicacoes.html"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">Publicações</a>
+                <a href="contato.html"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 font-bold mt-4">Contato</a>
             </nav>
         </div>
     </header>
@@ -45,7 +65,8 @@
     <main class="flex-grow pt-20">
         <section class="relative h-72 flex items-center justify-center text-center text-white px-4">
             <div class="absolute inset-0">
-                <img src="https://images.pexels.com/photos/339620/pexels-photo-339620.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Pesquisa" class="w-full h-full object-cover">
+                <img src="https://images.pexels.com/photos/339620/pexels-photo-339620.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                    alt="Pesquisa" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
             </div>
             <div class="relative z-10">
@@ -60,10 +81,80 @@
                 <div class="w-20 h-1 bg-blue-600 mx-auto mt-6 rounded-full"></div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <article class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 hover:-translate-y-1">
-                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600"><i data-lucide="atom" class="w-8 h-8"></i></div>
+                <article
+                    class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 hover:-translate-y-1">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600"><i
+                            data-lucide="atom" class="w-8 h-8"></i></div>
                     <h3 class="text-xl font-bold text-gray-900 mb-4">Análises Conformacionais em Solução</h3>
-                    <p class="text-gray-600 leading-relaxed">Cálculo de propriedades termodinâmicas e espectroscópicas para determinar as geometrias predominantes de compostos orgânicos em solução, utilizando software próprio em Python.</p>
+                    <p class="text-gray-600 leading-relaxed">Cálculo de propriedades termodinâmicas e espectroscópicas
+                        para determinar as geometrias predominantes de compostos orgânicos em solução, utilizando
+                        software próprio em Python.</p>
+                </article>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-gray-100">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Projetos de Pesquisa</h2>
+                <div class="w-20 h-1 bg-blue-600 mx-auto mt-6 rounded-full"></div>
+            </div>
+
+            <div class="space-y-6">
+                <article
+                    class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all duration-300">
+                    <div class="md:w-1/4 flex-shrink-0">
+                        <span
+                            class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 font-bold px-4 py-2 rounded-lg text-sm"><i
+                                data-lucide="calendar" class="w-4 h-4"></i> 2026 - Atual</span>
+                    </div>
+                    <div class="md:w-3/4 flex flex-col gap-4">
+                        <h3 class="text-xl font-bold text-gray-900 leading-tight">Geração de Hidrogênio Verde:
+                            Estratégias para o Desenvolvimento de Eletrocatalisadores de Alta Eficiência e Estabilidade
+                            para reação de Water Splitting</h3>
+                        <div class="text-sm text-gray-600 space-y-1 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p><strong class="text-gray-800">Descrição:</strong> EDITAL FAPERJ N 22/2025 PROGRAMA PENSA
+                                RIO APOIO AO ESTUDO DE TEMAS RELEVANTES E ESTRATÉGICOS PARA O ESTADO DO RIO DE JANEIRO
+                                2025.</p>
+                            <p><strong class="text-gray-800">Situação:</strong> Em andamento &bull; <strong
+                                    class="text-gray-800">Natureza:</strong> Pesquisa</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article
+                    class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all duration-300">
+                    <div class="md:w-1/4 flex-shrink-0">
+                        <span
+                            class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 font-bold px-4 py-2 rounded-lg text-sm"><i
+                                data-lucide="calendar" class="w-4 h-4"></i> 2025 - Atual</span>
+                    </div>
+                    <div class="md:w-3/4 flex flex-col gap-4">
+                        <h3 class="text-xl font-bold text-gray-900 leading-tight">Desenvolvimento de sistemas para
+                            imobilização de enzimas em polímeros porosos: uma abordagem de dinâmica molecular</h3>
+                        <div class="text-sm text-gray-600 space-y-1 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p><strong class="text-gray-800">Descrição:</strong> CHAMADA CNPq/MCTI No 44/2024 - Faixa A
+                                - Grupos Emergentes.</p>
+                            <p><strong class="text-gray-800">Situação:</strong> Em andamento &bull; <strong
+                                    class="text-gray-800">Natureza:</strong> Pesquisa</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article
+                    class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all duration-300">
+                    <div class="md:w-1/4 flex-shrink-0">
+                        <span
+                            class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 font-bold px-4 py-2 rounded-lg text-sm"><i
+                                data-lucide="activity" class="w-4 h-4"></i> Atual</span>
+                    </div>
+                    <div class="md:w-3/4 flex flex-col gap-4">
+                        <h3 class="text-xl font-bold text-gray-900 leading-tight">Análise Conformacional de Compostos
+                            Orgânicos em Solução Usando Dados de Ressonância Magnética Nuclear</h3>
+                        <div class="text-sm text-gray-600 space-y-1 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p><strong class="text-gray-800">Situação:</strong> Em andamento &bull; <strong
+                                    class="text-gray-800">Natureza:</strong> Pesquisa</p>
+                        </div>
+                    </div>
                 </article>
             </div>
         </div>
@@ -72,6 +163,7 @@
     <footer class="bg-gray-900 text-gray-300 py-8 text-center text-sm border-t border-gray-800 mt-auto">
         <p>© 2025 LQTSM - UERJ. Instituto de Química.</p>
     </footer>
-    <script>lucide.createIcons(); const btn=document.getElementById('mobile-menu-btn'),menu=document.getElementById('mobile-menu');if(btn&&menu)btn.addEventListener('click',()=>menu.classList.toggle('hidden'));</script>
+    <script>lucide.createIcons(); const btn = document.getElementById('mobile-menu-btn'), menu = document.getElementById('mobile-menu'); if (btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));</script>
 </body>
+
 </html>
