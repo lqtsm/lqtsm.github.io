@@ -1,0 +1,1239 @@
+/* ==========================================================================
+   LQTSM — folha de estilo unica do site
+   --------------------------------------------------------------------------
+   Organizacao do arquivo:
+     1. Variaveis (cores, medidas, fontes)     6. Cartoes e etiquetas
+     2. Base e tipografia                      7. Equipe
+     3. Layout (containers, grades)            8. Publicacoes
+     4. Cabecalho e menu                       9. Pesquisa
+     5. Capa e faixas de titulo               10. Contato, rodape e impressao
+
+   Para trocar a cor principal do site inteiro, mude apenas --azul e
+   --azul-escuro no bloco 1.
+   ========================================================================== */
+
+/* 1. VARIAVEIS =========================================================== */
+
+:root {
+  /* Cores da marca (retiradas do logotipo) */
+  --azul-claro: #5aa9de;
+  --azul: #2e7fb8;
+  --azul-escuro: #14456b;
+  --amarelo: #f0b429;
+  --laranja: #ed7a2c;
+  --magenta: #e4007e;
+  --vermelho: #d23c33;
+
+  /* Neutros */
+  --tinta: #16191f;
+  --tinta-media: #454b57;
+  --tinta-suave: #6b7280;
+  --linha: #e3e7ec;
+  --fundo: #ffffff;
+  --fundo-suave: #f6f8fa;
+  --fundo-azul: #eef6fc;
+
+  /* Medidas */
+  --largura: 1120px;
+  --largura-texto: 68ch;
+  --raio: 14px;
+  --raio-pequeno: 8px;
+  --altura-topo: 72px;
+
+  /* Sombras */
+  --sombra-1: 0 1px 2px rgb(16 25 35 / 6%), 0 2px 8px rgb(16 25 35 / 5%);
+  --sombra-2: 0 4px 12px rgb(16 25 35 / 8%), 0 12px 28px rgb(16 25 35 / 8%);
+
+  /* Fontes */
+  --fonte-texto: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fonte-titulo: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+
+/* 2. BASE E TIPOGRAFIA =================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--altura-topo) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--fonte-texto);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--tinta);
+  margin: 0 0 0.5em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.2rem);
+  letter-spacing: -0.015em;
+}
+h2 {
+  font-size: clamp(1.6rem, 1.25rem + 1.5vw, 2.2rem);
+}
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+p:last-child {
+  margin-bottom: 0;
+}
+
+a {
+  color: var(--azul);
+  text-decoration-color: color-mix(in srgb, var(--azul) 35%, transparent);
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: var(--azul-escuro);
+  text-decoration-color: currentColor;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+:focus-visible {
+  outline: 3px solid var(--azul-claro);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.somente-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Icones em SVG desenhados pelo site.js */
+.icone {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 3. LAYOUT ============================================================== */
+
+main {
+  flex: 1 0 auto;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--largura);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.secao {
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+.secao--suave {
+  background: var(--fundo-suave);
+  border-block: 1px solid var(--linha);
+}
+.secao--compacta {
+  padding-block: clamp(2rem, 3.5vw, 2.75rem);
+}
+
+/* Titulo de secao com o tracinho colorido da marca */
+.secao__titulo {
+  margin-bottom: 2rem;
+}
+.secao__titulo h2 {
+  margin-bottom: 0.35rem;
+}
+.secao__titulo p {
+  color: var(--tinta-suave);
+  max-width: var(--largura-texto);
+}
+.secao__titulo::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 5px;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+  background: linear-gradient(
+    90deg,
+    var(--azul-claro) 0 25%,
+    var(--amarelo) 25% 50%,
+    var(--laranja) 50% 75%,
+    var(--vermelho) 75% 100%
+  );
+}
+.secao__titulo--centro {
+  text-align: center;
+}
+.secao__titulo--centro::before {
+  margin-inline: auto;
+}
+.secao__titulo--centro p {
+  margin-inline: auto;
+}
+
+.grade {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.grade--larga {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+/* Duas colunas fixas: bom para 2 ou 4 cartões, que ficariam órfãos em 3 colunas */
+.grade--duas {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+}
+.pilha {
+  display: grid;
+  gap: 1rem;
+}
+
+/* 4. CABECALHO E MENU ==================================================== */
+
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgb(255 255 255 / 92%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--linha);
+}
+
+.topo__interno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--altura-topo);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--tinta);
+}
+.marca img {
+  height: 42px;
+  width: auto;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.menu a {
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--raio-pequeno);
+  color: var(--tinta-media);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+.menu a:hover {
+  background: var(--fundo-azul);
+  color: var(--azul-escuro);
+}
+.menu a[aria-current="page"] {
+  color: var(--azul-escuro);
+  background: var(--fundo-azul);
+  box-shadow: inset 0 -2px 0 var(--azul);
+}
+
+.menu__botao {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--fundo);
+  color: var(--tinta);
+  cursor: pointer;
+}
+.menu__botao .icone {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 860px) {
+  .menu__botao {
+    display: inline-flex;
+  }
+  .menu {
+    position: absolute;
+    top: var(--altura-topo);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15rem;
+    padding: 0.75rem clamp(1rem, 4vw, 2rem) 1.25rem;
+    background: var(--fundo);
+    border-bottom: 1px solid var(--linha);
+    box-shadow: var(--sombra-2);
+  }
+  .menu[hidden] {
+    display: none;
+  }
+  .menu a {
+    padding: 0.75rem 0.85rem;
+    font-size: 1.05rem;
+  }
+}
+
+/* 5. CAPA E FAIXAS DE TITULO ============================================= */
+
+.capa {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0f3350 0%, var(--azul-escuro) 55%, #0b2c47 100%);
+  color: #fff;
+  padding-block: clamp(3.5rem, 8vw, 6.5rem);
+}
+.capa__fundo {
+  position: absolute;
+  inset: auto 0 -6% 0;
+  width: 130%;
+  max-width: none;
+  opacity: 0.17;
+  pointer-events: none;
+}
+.capa__interno {
+  position: relative;
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+}
+@media (max-width: 860px) {
+  .capa__interno {
+    grid-template-columns: 1fr;
+  }
+}
+
+.capa h1 {
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+.capa__chamada {
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.3rem);
+  color: #d6e6f4;
+  max-width: 46ch;
+}
+.capa__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #bcdcf3;
+}
+/* Placa clara atrás do logotipo: o wordmark é preto e some sobre o azul da capa */
+.capa__logo {
+  display: block;
+  justify-self: center;
+  width: 100%;
+  max-width: 420px;
+  padding: 1.75rem;
+  background: #fff;
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.capa__logo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgb(0 0 0 / 18%), 0 24px 48px rgb(0 0 0 / 20%);
+}
+.capa__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+/* Faixa de titulo das paginas internas */
+.faixa {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0f3350 0%, var(--azul-escuro) 100%);
+  color: #fff;
+  padding-block: clamp(2.5rem, 5vw, 3.75rem);
+}
+.faixa__fundo {
+  position: absolute;
+  inset: auto 0 -25% 0;
+  width: 120%;
+  max-width: none;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.faixa__interno {
+  position: relative;
+}
+.faixa h1 {
+  color: #fff;
+  margin-bottom: 0.4rem;
+}
+.faixa p {
+  color: #cfe3f2;
+  max-width: var(--largura-texto);
+}
+
+/* Botoes */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--raio-pequeno);
+  background: var(--azul);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.botao:hover {
+  background: var(--azul-escuro);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-1);
+}
+.botao--claro {
+  background: #fff;
+  color: var(--azul-escuro);
+}
+.botao--claro:hover {
+  background: #eaf3fa;
+  color: var(--azul-escuro);
+}
+.botao--contorno {
+  background: transparent;
+  border-color: rgb(255 255 255 / 40%);
+  color: #fff;
+}
+.botao--contorno:hover {
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+
+/* 6. CARTOES E ETIQUETAS ================================================= */
+
+.cartao {
+  background: var(--fundo);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  padding: 1.5rem;
+  box-shadow: var(--sombra-1);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+}
+.cartao:hover {
+  box-shadow: var(--sombra-2);
+  border-color: color-mix(in srgb, var(--azul-claro) 55%, var(--linha));
+}
+.cartao h3 {
+  margin-bottom: 0.5rem;
+}
+.cartao p {
+  color: var(--tinta-media);
+  font-size: 0.98rem;
+}
+
+/* Cartao com um filete colorido no topo (usado nas linhas de pesquisa) */
+.cartao--filete {
+  border-top: 4px solid var(--cor-destaque, var(--azul));
+}
+.cartao__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-destaque, var(--azul)) 12%, #fff);
+  color: var(--cor-destaque, var(--azul));
+}
+.cartao__icone .icone {
+  width: 22px;
+  height: 22px;
+}
+
+/* Cartao clicavel da pagina inicial */
+.atalho {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: inherit;
+}
+.atalho h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--azul-escuro);
+  margin: 0;
+}
+.atalho:hover h3 {
+  color: var(--azul);
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--fundo-azul);
+  color: var(--azul-escuro);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* IMPORTANTE: o sufixo tem de ser igual ao nome da variável de cor
+   (--amarelo, --vermelho...), porque o site.js monta a classe concatenando
+   "etiqueta--" com o campo "cor" de GRUPOS. Se os dois não baterem, a etiqueta
+   perde a cor silenciosamente e cai no estilo azul padrão. */
+.etiqueta--neutra {
+  background: var(--fundo-suave);
+  color: var(--tinta-media);
+  border: 1px solid var(--linha);
+}
+.etiqueta--azul {
+  background: var(--fundo-azul);
+  color: var(--azul-escuro);
+}
+.etiqueta--amarelo {
+  background: color-mix(in srgb, var(--amarelo) 22%, #fff);
+  color: #7a5100;
+}
+.etiqueta--laranja {
+  background: color-mix(in srgb, var(--laranja) 16%, #fff);
+  color: #9b4310;
+}
+.etiqueta--magenta {
+  background: color-mix(in srgb, var(--magenta) 12%, #fff);
+  color: #a30059;
+}
+.etiqueta--vermelho {
+  background: color-mix(in srgb, var(--vermelho) 14%, #fff);
+  color: #96241d;
+}
+
+/* Numeros em destaque na pagina inicial */
+.numeros {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.numero {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--fundo);
+}
+.numero strong {
+  display: block;
+  font-family: var(--fonte-titulo);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--azul-escuro);
+}
+.numero span {
+  font-size: 0.9rem;
+  color: var(--tinta-suave);
+}
+
+/* 7. EQUIPE ============================================================== */
+
+/* As seções da página Equipe são geradas pelo site.js; aqui só apertamos o
+   espaçamento entre elas, que ficaria exagerado com o padrão de .secao */
+[data-equipe] > .secao {
+  padding-block: 2.25rem;
+}
+[data-equipe] > .secao:first-child {
+  padding-top: clamp(2.5rem, 5vw, 3.5rem);
+}
+[data-equipe] > .secao:last-child {
+  padding-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.pessoa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+}
+.pessoa__foto,
+.pessoa__iniciais {
+  /* flex: none impede que o círculo seja achatado quando o cartão fica estreito */
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  margin-bottom: 0.85rem;
+  object-fit: cover;
+}
+.pessoa__iniciais {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fonte-titulo);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--cor-destaque, var(--azul));
+  background: color-mix(in srgb, var(--cor-destaque, var(--azul)) 13%, #fff);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cor-destaque, var(--azul)) 30%, #fff);
+}
+.pessoa__nome {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.pessoa__vinculo {
+  font-size: 0.9rem;
+  color: var(--tinta-suave);
+  margin: 0;
+}
+.pessoa__resumo {
+  font-size: 0.95rem;
+  color: var(--tinta-media);
+  margin: 0.6rem 0 0;
+}
+.pessoa__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+.pessoa__links {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+}
+.pessoa__links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--linha);
+  border-radius: 50%;
+  color: var(--tinta-suave);
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.pessoa__links a:hover {
+  background: var(--azul);
+  border-color: var(--azul);
+  color: #fff;
+}
+
+/* Cartao horizontal, usado para a coordenacao */
+.pessoa--destaque {
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  gap: 1.75rem;
+}
+.pessoa--destaque .pessoa__foto,
+.pessoa--destaque .pessoa__iniciais {
+  width: 128px;
+  height: 128px;
+  margin-bottom: 0;
+  font-size: 2.1rem;
+}
+.pessoa--destaque .pessoa__nome {
+  font-size: 1.4rem;
+}
+.pessoa--destaque .pessoa__etiquetas,
+.pessoa--destaque .pessoa__links {
+  justify-content: flex-start;
+}
+@media (max-width: 560px) {
+  .pessoa--destaque {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .pessoa--destaque .pessoa__etiquetas,
+  .pessoa--destaque .pessoa__links {
+    justify-content: center;
+  }
+}
+
+/* 8. PUBLICACOES ========================================================= */
+
+.filtros {
+  position: sticky;
+  top: var(--altura-topo);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 1rem;
+  margin-bottom: 1.5rem;
+  background: color-mix(in srgb, var(--fundo) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--linha);
+}
+.filtros__anos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.filtros__botao {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--fundo);
+  color: var(--tinta-media);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.filtros__botao:hover {
+  border-color: var(--azul-claro);
+  color: var(--azul-escuro);
+}
+.filtros__botao[aria-pressed="true"] {
+  background: var(--azul-escuro);
+  border-color: var(--azul-escuro);
+  color: #fff;
+}
+.filtros__busca {
+  position: relative;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.filtros__busca .icone {
+  position: absolute;
+  left: 0.7rem;
+  width: 18px;
+  height: 18px;
+  color: var(--tinta-suave);
+  pointer-events: none;
+}
+.filtros__busca input {
+  width: 260px;
+  max-width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.3rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--fundo);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--tinta);
+}
+.filtros__busca input:focus {
+  border-color: var(--azul-claro);
+}
+@media (max-width: 720px) {
+  .filtros__busca {
+    margin-left: 0;
+    width: 100%;
+  }
+  .filtros__busca input {
+    width: 100%;
+  }
+}
+
+.contagem {
+  color: var(--tinta-suave);
+  font-size: 0.92rem;
+  margin-bottom: 1rem;
+}
+
+.publicacao {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.publicacao:hover {
+  border-color: color-mix(in srgb, var(--azul-claro) 60%, var(--linha));
+  box-shadow: var(--sombra-1);
+}
+.publicacao__ano {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0;
+  border-radius: var(--raio-pequeno);
+  background: var(--fundo-azul);
+  color: var(--azul-escuro);
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.publicacao__titulo {
+  font-family: var(--fonte-texto);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.45;
+  margin: 0 0 0.35rem;
+  /* titulos longos ficam melhor preenchendo a linha do que "equilibrados" */
+  text-wrap: pretty;
+}
+.publicacao__meta {
+  font-size: 0.92rem;
+  color: var(--tinta-suave);
+  margin: 0;
+}
+.publicacao__meta em {
+  font-style: italic;
+  color: var(--tinta-media);
+}
+.publicacao__link {
+  align-self: center;
+}
+@media (max-width: 720px) {
+  .publicacao {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+  }
+  .publicacao__ano {
+    padding-inline: 0.7rem;
+  }
+  .publicacao__link {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+.vazio {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--tinta-suave);
+  border: 1px dashed var(--linha);
+  border-radius: var(--raio);
+  background: var(--fundo-suave);
+}
+
+/* 9. PESQUISA ============================================================ */
+
+.projeto {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--linha);
+  border-left: 4px solid var(--cor-destaque, var(--azul));
+  border-radius: var(--raio);
+  background: var(--fundo);
+  box-shadow: var(--sombra-1);
+}
+.projeto__periodo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.projeto h3 {
+  font-family: var(--fonte-texto);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+.projeto__detalhes {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  color: var(--tinta-media);
+}
+.projeto__detalhes dt {
+  font-weight: 700;
+  color: var(--tinta);
+}
+.projeto__detalhes dd {
+  margin: 0;
+}
+.projeto__linha {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 0.5rem;
+}
+@media (max-width: 720px) {
+  .projeto {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .projeto__periodo {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .projeto__linha {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
+
+/* 9a. TUTORIAIS ========================================================== */
+
+.tutorial {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+  border: 1px solid var(--linha);
+  border-left: 4px solid var(--azul);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  box-shadow: var(--sombra-1);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.tutorial:hover {
+  box-shadow: var(--sombra-2);
+  border-color: color-mix(in srgb, var(--azul-claro) 60%, var(--linha));
+  border-left-color: var(--azul);
+}
+.tutorial__titulo {
+  font-family: var(--fonte-texto);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+  text-wrap: pretty;
+}
+.tutorial__resumo {
+  margin: 0.35rem 0 0;
+  font-size: 0.98rem;
+  color: var(--tinta-media);
+}
+@media (max-width: 620px) {
+  .tutorial {
+    grid-template-columns: 1fr;
+  }
+  .tutorial .botao {
+    justify-self: start;
+  }
+}
+
+/* 9b. MARCA (página de download do logotipo) ============================= */
+
+.versao {
+  display: flex;
+  flex-direction: column;
+}
+/* Placa clara onde o logotipo é exibido — nunca mude a cor de fundo dela:
+   o wordmark é preto e precisa de fundo claro. */
+.versao__placa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+}
+.versao__placa img {
+  max-height: 165px;
+  max-width: 100%;
+  width: auto;
+}
+.versao__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+}
+
+.cores {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.cor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--fundo);
+  overflow: hidden;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cor:hover {
+  border-color: var(--azul-claro);
+}
+.cor__amostra {
+  height: 84px;
+  background: var(--cor-amostra);
+}
+.cor__nome {
+  padding: 0.6rem 0.75rem 0.1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.cor__hex {
+  padding: 0 0.75rem 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+  text-transform: uppercase;
+}
+
+/* Listas de "pode / evite" */
+.regras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+  font-size: 0.98rem;
+  color: var(--tinta-media);
+}
+.regras li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: start;
+}
+.regras li::before {
+  content: "✓";
+  font-weight: 700;
+  color: var(--azul);
+}
+.regras--evite li::before {
+  content: "✕";
+  color: var(--vermelho);
+}
+
+/* 10. CONTATO, RODAPE E IMPRESSAO ======================================== */
+
+.contato {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 3.5rem);
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .contato {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contato__item {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.contato__item:last-child {
+  margin-bottom: 0;
+}
+.contato__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--fundo-azul);
+  color: var(--azul);
+}
+.contato__icone .icone {
+  width: 22px;
+  height: 22px;
+}
+.contato__item h3 {
+  font-family: var(--fonte-texto);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.contato__item p {
+  color: var(--tinta-media);
+  font-size: 0.98rem;
+  margin-bottom: 0.25rem;
+}
+
+.mapa {
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  overflow: hidden;
+  box-shadow: var(--sombra-1);
+  aspect-ratio: 4 / 3;
+}
+.mapa iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.moldura {
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  overflow: hidden;
+  background: var(--fundo);
+  box-shadow: var(--sombra-1);
+}
+.moldura iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+
+.rodape {
+  margin-top: auto;
+  background: var(--tinta);
+  color: #b9c0cc;
+  padding-block: 2.5rem 1.75rem;
+  font-size: 0.93rem;
+}
+.rodape a {
+  color: #d7e3ee;
+}
+.rodape a:hover {
+  color: #fff;
+}
+.rodape__grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+@media (max-width: 720px) {
+  .rodape__grade {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+.rodape strong {
+  display: block;
+  color: #fff;
+  font-family: var(--fonte-titulo);
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+.rodape ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.rodape__fim {
+  padding-top: 1.25rem;
+  color: #8d97a6;
+  font-size: 0.88rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .topo,
+  .rodape,
+  .filtros,
+  .capa__fundo,
+  .faixa__fundo,
+  .mapa {
+    display: none !important;
+  }
+  body {
+    color: #000;
+  }
+  .capa,
+  .faixa {
+    background: none;
+    color: #000;
+    padding-block: 1rem;
+  }
+  .capa h1,
+  .faixa h1,
+  .faixa p,
+  .capa__chamada {
+    color: #000;
+  }
+  .cartao,
+  .publicacao,
+  .projeto {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}
