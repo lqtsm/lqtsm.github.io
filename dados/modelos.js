@@ -29,7 +29,11 @@
                  crases (`assim`) aparece como código: nomes de arquivo,
                  comandos. Apague a linha se não quiser.
      link        O link copiado do Drive. O site gera sozinho o link de
-                 download direto a partir dele.
+                 download direto a partir dele. Serve também o link de um
+                 arquivo do Word/PowerPoint aberto no editor do Google
+                 (docs.google.com/.../edit). Não serve para um arquivo
+                 nativo do Google Docs/Apresentações: converta antes
+                 (Arquivo > Fazer download > .docx/.pptx) e suba o arquivo.
      capa        OPCIONAL. Miniatura em assets/img/modelos/ (JPG ou PNG,
                  retrato, ~600 px de altura). Sem capa, aparece o ícone
                  da categoria.
@@ -49,7 +53,9 @@ const CATEGORIAS_MODELOS = [
     titulo: "Pôsteres para congressos",
     icone: "quadro",
     cor: "azul",
-    resumo: "Para apresentar trabalhos em eventos científicos com a identidade visual do laboratório.",
+    resumo:
+      "Para apresentar trabalhos em eventos científicos com a identidade visual do laboratório. " +
+      "O mesmo layout em duas versões: escolha pelo programa que você usa.",
   },
   {
     id: "teses",
@@ -76,7 +82,7 @@ const CATEGORIAS_MODELOS = [
 
 const MODELOS = [
   {
-    titulo: "Pôster LQTSM — 90 × 120 cm",
+    titulo: "Pôster LQTSM 90 × 120 cm — LaTeX",
     categoria: "poster",
     formato: "LaTeX",
     extensao: ".tar.gz",
@@ -93,6 +99,25 @@ const MODELOS = [
     ],
     link: "https://drive.google.com/file/d/1rGWCFUrqI3GSuP2tvqdB86YW9BHzt6X_/view?usp=sharing",
     capa: "assets/img/modelos/poster-lqtsm.jpg",
+  },
+  {
+    titulo: "Pôster LQTSM 90 × 120 cm — PowerPoint",
+    categoria: "poster",
+    formato: "PowerPoint",
+    extensao: ".pptx",
+    tamanho: "170 KB",
+    atualizado: "set. 2026",
+    resumo:
+      "O mesmo pôster da versão LaTeX, montado em um único slide já no tamanho final. " +
+      "Para quem prefere editar visualmente, sem compilar nada.",
+    detalhes: [
+      "Troque os textos e as caixas marcadas com (substituir): logotipos do evento e do PPGQ, figuras e tabela.",
+      "Não redimensione o slide: ele já está em 90 × 120 cm, retrato.",
+      "Títulos em Arial e texto em Cambria, fontes que já vêm no Windows e no macOS. Edite no PowerPoint: no Google Apresentações a equação pode não ser preservada.",
+      "Para imprimir, salve como PDF (Arquivo > Exportar) e envie o PDF à gráfica, não o .pptx.",
+    ],
+    link: "https://docs.google.com/presentation/d/1iY42B8uo13cAibspKtXN0ax1DTjtz_z4/edit?usp=sharing&ouid=102066516932258614737&rtpof=true&sd=true",
+    capa: "assets/img/modelos/poster-lqtsm-powerpoint.jpg",
   },
   {
     titulo: "Registro Diário de Atividades",

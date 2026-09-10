@@ -188,7 +188,11 @@ sendo preparados".
 
 - **Não é preciso gerar link de download.** O site transforma o link do Drive em
   download direto sozinho: o botão **Baixar modelo** baixa o arquivo, e **Ver no
-  Drive** abre a pré-visualização.
+  Drive** abre a pré-visualização. Também serve o link de um Word/PowerPoint
+  aberto no editor do Google (`docs.google.com/presentation/d/.../edit`).
+- **Arquivo nativo do Google (Docs, Apresentações) não baixa pelo botão.** Suba
+  sempre o arquivo do Office (`.docx`, `.pptx`); se o modelo nasceu no Google,
+  use **Arquivo → Fazer download** e suba o arquivo baixado.
 - `categoria` tem que ser um dos `id` de `CATEGORIAS_MODELOS`, no topo do arquivo:
   `poster`, `teses`, `artigos` ou `registro`. Se não bater, o modelo não aparece
   (e o Console do navegador, F12, avisa qual foi).

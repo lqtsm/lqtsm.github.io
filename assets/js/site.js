@@ -551,9 +551,11 @@
   /* --- materiais: modelos do laboratorio -------------------------------- */
 
   // Transforma o link "Compartilhar" do Google Drive (.../file/d/ID/view) em
-  // link de download direto. Links que nao sao do Drive passam sem mudanca.
+  // link de download direto. Aceita tambem o link de um arquivo do Office
+  // aberto no editor do Google (docs.google.com/presentation/d/ID/edit...).
+  // Links que nao sao do Google passam sem mudanca.
   function linkDownload(link) {
-    var achado = /drive\.google\.com\/.*?(?:\/d\/|[?&]id=)([\w-]{10,})/.exec(String(link || ""));
+    var achado = /(?:drive|docs)\.google\.com\/.*?(?:\/d\/|[?&]id=)([\w-]{10,})/.exec(String(link || ""));
     return achado ? "https://drive.google.com/uc?export=download&id=" + achado[1] : link;
   }
 
