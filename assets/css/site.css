@@ -5,7 +5,7 @@
      1. Variaveis (cores, medidas, fontes)     6. Cartoes e etiquetas
      2. Base e tipografia                      7. Equipe
      3. Layout (containers, grades)            8. Publicacoes
-     4. Cabecalho e menu                       9. Pesquisa
+     4. Cabecalho e menu                       9. Pesquisa, materiais e marca
      5. Capa e faixas de titulo               10. Contato, rodape e impressao
 
    Para trocar a cor principal do site inteiro, mude apenas --azul e
@@ -121,6 +121,17 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
+}
+
+code {
+  padding: 0.05em 0.35em;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  background: var(--fundo-suave);
+  font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.86em;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
 }
 
 :focus-visible {
@@ -469,6 +480,17 @@ main {
 .botao--contorno:hover {
   background: rgb(255 255 255 / 12%);
   color: #fff;
+}
+/* Acao secundaria sobre fundo claro (ex.: "Ver no Drive" ao lado de "Baixar") */
+.botao--secundario {
+  background: var(--fundo);
+  border-color: var(--linha);
+  color: var(--azul-escuro);
+}
+.botao--secundario:hover {
+  background: var(--fundo-azul);
+  border-color: color-mix(in srgb, var(--azul-claro) 55%, var(--linha));
+  color: var(--azul-escuro);
 }
 
 /* 6. CARTOES E ETIQUETAS ================================================= */
@@ -935,7 +957,99 @@ main {
   }
 }
 
-/* 9a. TUTORIAIS ========================================================== */
+/* 9a. MATERIAIS: ABAS, TUTORIAIS E MODELOS =============================== */
+
+/* Barra de abas: fica presa logo abaixo do cabecalho ao rolar a pagina */
+.abas {
+  position: sticky;
+  top: var(--altura-topo);
+  z-index: 20;
+  background: color-mix(in srgb, var(--fundo) 94%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--linha);
+}
+.abas__lista {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.abas__botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1rem 1rem 0.85rem;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--tinta-suave);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.abas__botao:hover {
+  color: var(--azul-escuro);
+  border-bottom-color: var(--linha);
+}
+.abas__botao[aria-selected="true"] {
+  color: var(--azul-escuro);
+  border-bottom-color: var(--azul);
+}
+.abas__botao:focus-visible {
+  outline-offset: -3px;
+}
+.abas__contagem {
+  min-width: 1.6rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--fundo-suave);
+  color: var(--tinta-suave);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  text-align: center;
+}
+.abas__contagem:empty {
+  display: none;
+}
+.abas__botao[aria-selected="true"] .abas__contagem {
+  border-color: transparent;
+  background: var(--fundo-azul);
+  color: var(--azul-escuro);
+}
+@media (max-width: 480px) {
+  .abas__botao {
+    padding-inline: 0.7rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Quadro de orientacao no topo de uma aba */
+.aviso {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2.75rem;
+  border: 1px solid color-mix(in srgb, var(--azul-claro) 35%, #fff);
+  border-radius: var(--raio);
+  background: var(--fundo-azul);
+  color: var(--tinta-media);
+  font-size: 0.96rem;
+}
+.aviso > .icone {
+  width: 22px;
+  height: 22px;
+  margin-top: 0.1rem;
+  color: var(--azul);
+}
+.aviso strong {
+  color: var(--tinta);
+}
 
 .tutorial {
   display: grid;
@@ -975,6 +1089,168 @@ main {
   .tutorial .botao {
     justify-self: start;
   }
+}
+
+/* Categoria de modelos (Pôsteres, Teses...) */
+.categoria + .categoria {
+  margin-top: 3.25rem;
+}
+.categoria {
+  /* o cabecalho e a barra de abas ficam por cima: desconta os dois ao rolar */
+  scroll-margin-top: 4.5rem;
+}
+.categoria__titulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.categoria__titulo .cartao__icone {
+  flex: none;
+  margin: 0;
+}
+.categoria__titulo h3 {
+  font-size: 1.45rem;
+  margin: 0.15rem 0 0.2rem;
+}
+.categoria__titulo p {
+  color: var(--tinta-suave);
+  font-size: 0.98rem;
+  max-width: var(--largura-texto);
+}
+
+/* Cartao de um modelo: miniatura a esquerda, texto e botoes a direita */
+.modelo {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 1.25rem 1.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  box-shadow: var(--sombra-1);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.modelo:hover {
+  box-shadow: var(--sombra-2);
+  border-color: color-mix(in srgb, var(--azul-claro) 55%, var(--linha));
+}
+.modelo__capa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+  background: color-mix(in srgb, var(--cor-destaque, var(--azul)) 8%, #fff);
+  color: var(--cor-destaque, var(--azul));
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.modelo__capa:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-1);
+}
+.modelo__capa img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+.modelo__capa .icone {
+  width: 44px;
+  height: 44px;
+  stroke-width: 1.5;
+}
+.modelo__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+.modelo__titulo {
+  font-family: var(--fonte-texto);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 0.4rem;
+  text-wrap: pretty;
+}
+.modelo__resumo {
+  color: var(--tinta-media);
+  font-size: 0.98rem;
+  margin-bottom: 0.9rem;
+}
+.modelo__detalhes {
+  gap: 0.4rem;
+  font-size: 0.93rem;
+}
+.modelo__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.35rem;
+}
+.modelo__data {
+  margin-left: auto;
+  font-size: 0.88rem;
+  color: var(--tinta-suave);
+}
+@media (max-width: 620px) {
+  .modelo {
+    grid-template-columns: 1fr;
+  }
+  .modelo__capa {
+    width: 140px;
+  }
+  .modelo__data {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* Categorias ainda sem modelo */
+.em-preparo {
+  margin-top: 3.25rem;
+  padding: 1.5rem;
+  border: 1px dashed color-mix(in srgb, var(--tinta-suave) 40%, var(--linha));
+  border-radius: var(--raio);
+  background: var(--fundo-suave);
+}
+.em-preparo h3 {
+  font-family: var(--fonte-texto);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.em-preparo p {
+  color: var(--tinta-suave);
+  font-size: 0.95rem;
+}
+.em-preparo__lista {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+.em-preparo__lista li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--fundo);
+  color: var(--tinta-media);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.em-preparo__lista .icone {
+  color: var(--tinta-suave);
 }
 
 /* 9b. MARCA (página de download do logotipo) ============================= */
@@ -1210,6 +1486,7 @@ main {
   .topo,
   .rodape,
   .filtros,
+  .abas,
   .capa__fundo,
   .faixa__fundo,
   .mapa {
@@ -1232,8 +1509,13 @@ main {
   }
   .cartao,
   .publicacao,
-  .projeto {
+  .projeto,
+  .modelo {
     box-shadow: none;
     break-inside: avoid;
+  }
+  /* No papel nao ha abas para clicar: imprime todos os paineis */
+  [role="tabpanel"][hidden] {
+    display: block !important;
   }
 }

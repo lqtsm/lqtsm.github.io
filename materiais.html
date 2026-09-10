@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materiais | LQTSM — UERJ</title>
+  <meta name="description"
+    content="Materiais de apoio do LQTSM: tutoriais de química computacional e modelos do laboratório para pôsteres, teses, artigos e registro de atividades.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+
+<body data-pagina="materiais">
+
+  <header data-topo></header>
+
+  <main>
+
+    <section class="faixa">
+      <img class="faixa__fundo" src="assets/img/curvas.svg" alt="" aria-hidden="true">
+      <div class="container faixa__interno">
+        <h1>Materiais</h1>
+        <p>Material de apoio para quem faz parte do laboratório: tutoriais para rodar os cálculos e
+          usar os programas, e os modelos oficiais do grupo para pôsteres, textos acadêmicos e o
+          registro das atividades.</p>
+      </div>
+    </section>
+
+    <!-- ABAS --------------------------------------------------------------
+         Cada botão mostra um dos painéis abaixo. O endereço acompanha a aba
+         aberta, então dá para mandar o link direto: materiais.html#modelos
+         Para criar uma aba nova, copie um <button> e um <section>, trocando
+         os ids e o data-aba. -->
+    <div class="abas" data-abas>
+      <div class="container abas__lista" role="tablist" aria-label="Tipos de material">
+        <button class="abas__botao" type="button" role="tab" id="aba-tutoriais" data-aba="tutoriais"
+          aria-controls="painel-tutoriais" aria-selected="true">
+          Tutoriais <span class="abas__contagem" data-conta="tutoriais"></span>
+        </button>
+        <button class="abas__botao" type="button" role="tab" id="aba-modelos" data-aba="modelos"
+          aria-controls="painel-modelos" aria-selected="false" tabindex="-1">
+          Modelos do laboratório <span class="abas__contagem" data-conta="modelos"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TUTORIAIS --------------------------------------------------------- -->
+    <section class="secao painel" id="painel-tutoriais" role="tabpanel" aria-labelledby="aba-tutoriais">
+      <div class="container">
+        <div class="secao__titulo">
+          <h2>Tutoriais</h2>
+          <p>Como rodar os cálculos, usar os programas e organizar os resultados. Cada tutorial abre
+            em uma página do Notion.</p>
+        </div>
+        <!-- Lista gerada a partir de dados/tutoriais.js -->
+        <div class="pilha" data-tutoriais></div>
+      </div>
+    </section>
+
+    <!-- MODELOS ----------------------------------------------------------- -->
+    <section class="secao painel" id="painel-modelos" role="tabpanel" aria-labelledby="aba-modelos" hidden>
+      <div class="container">
+        <div class="secao__titulo">
+          <h2>Modelos do laboratório</h2>
+          <p>Arquivos-base com a estrutura e a identidade visual adotadas pelo LQTSM. Partir deles
+            poupa tempo de formatação e mantém um padrão único em tudo o que sai do laboratório.</p>
+        </div>
+
+        <div class="aviso">
+          <svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 16v-5M12 8h.01" />
+          </svg>
+          <p><strong>Antes de usar:</strong> baixe o arquivo e trabalhe sempre na sua cópia — os
+            originais no Drive são somente leitura e servem de referência para todo o grupo. O
+            logotipo e as cores oficiais estão na página <a href="marca.html">Marca</a>. Encontrou
+            um erro ou sentiu falta de algum modelo? Escreva para
+            <a href="mailto:haroldo.candal@uerj.br">haroldo.candal@uerj.br</a>.</p>
+        </div>
+
+        <!-- Lista gerada a partir de dados/modelos.js -->
+        <div data-modelos></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer data-rodape></footer>
+
+  <script src="dados/config.js"></script>
+  <script src="dados/tutoriais.js"></script>
+  <script src="dados/modelos.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
+
+</html>

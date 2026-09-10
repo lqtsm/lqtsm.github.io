@@ -47,7 +47,7 @@ const CONFIG = {
     { id: "equipe", titulo: "Equipe", url: "equipe.html" },
     { id: "pesquisa", titulo: "Pesquisa", url: "pesquisa.html" },
     { id: "publicacoes", titulo: "Publicações", url: "publicacoes.html" },
-    { id: "tutoriais", titulo: "Tutoriais", url: "tutoriais.html" },
+    { id: "materiais", titulo: "Materiais", url: "materiais.html" },
     { id: "marca", titulo: "Marca", url: "marca.html" },
     { id: "contato", titulo: "Contato", url: "contato.html" },
   ],

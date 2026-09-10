@@ -15,7 +15,8 @@ Todo o conteúdo que muda com frequência está na pasta [`dados/`](dados/):
 | [`dados/equipe.js`](dados/equipe.js) | Pessoas do laboratório |
 | [`dados/pesquisa.js`](dados/pesquisa.js) | Linhas de pesquisa, projetos e ferramentas |
 | [`dados/publicacoes.js`](dados/publicacoes.js) | Artigos publicados |
-| [`dados/tutoriais.js`](dados/tutoriais.js) | Links dos tutoriais no Notion |
+| [`dados/tutoriais.js`](dados/tutoriais.js) | Links dos tutoriais no Notion (página Materiais) |
+| [`dados/modelos.js`](dados/modelos.js) | Modelos do laboratório no Google Drive (página Materiais) |
 
 O passo a passo completo, com exemplos prontos para copiar, está em
 **[COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)**.

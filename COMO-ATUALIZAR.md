@@ -18,18 +18,20 @@ lqtsm.github.io/
 │   ├── equipe.js            Pessoas do laboratório
 │   ├── pesquisa.js          Linhas de pesquisa, projetos e ferramentas
 │   ├── publicacoes.js       Artigos publicados
-│   └── tutoriais.js         Links dos tutoriais no Notion
+│   ├── tutoriais.js         Links dos tutoriais no Notion
+│   └── modelos.js           Modelos do laboratório (arquivos no Google Drive)
 │
 ├── assets/
 │   ├── css/site.css         Aparência (cores, espaçamentos, tipografia)
 │   ├── js/site.js           Motor do site — normalmente não precisa mexer
-│   └── img/                 Logotipos e fotos
+│   └── img/                 Logotipos, fotos e miniaturas dos modelos
 │
 ├── index.html               Página inicial
 ├── equipe.html              Equipe
 ├── pesquisa.html            Pesquisa
 ├── publicacoes.html         Publicações
-├── tutoriais.html           Tutoriais do laboratório
+├── materiais.html           Materiais: abas Tutoriais e Modelos do laboratório
+├── tutoriais.html           Só redireciona para materiais.html#tutoriais (links antigos)
 ├── marca.html               Download do logotipo, cores e uso
 ├── contato.html             Contato
 └── 404.html                 Página de endereço inexistente
@@ -125,7 +127,20 @@ Um projeto novo:
 
 ---
 
-## 3b. Adicionar um tutorial
+## 3b. A página Materiais
+
+`materiais.html` tem duas abas: **Tutoriais** e **Modelos do laboratório**. Cada
+aba tem o seu arquivo de dados (`dados/tutoriais.js` e `dados/modelos.js`) e o
+número de itens aparece sozinho ao lado do nome da aba.
+
+O endereço acompanha a aba aberta, então dá para mandar o link direto para a aba
+certa: **`lqtsm.github.io/materiais.html#modelos`**. Também funciona para uma
+categoria específica: `materiais.html#modelos-poster`, `#modelos-registro` etc.
+
+O antigo `tutoriais.html` continua existindo só para redirecionar quem tiver o
+link velho salvo — não precisa mexer nele.
+
+### Adicionar um tutorial
 
 1. Escreva o tutorial no Notion.
 2. Publique a página: **···** (canto superior direito) → **Compartilhar** →
@@ -144,10 +159,60 @@ Um projeto novo:
 `resumo` é opcional — apague a linha se não quiser. A ordem da lista é a ordem
 que aparece no site: deixe em cima o que os alunos novos precisam ler primeiro.
 
-Enquanto a lista estiver vazia, a página mostra "Os primeiros tutoriais estão
-sendo preparados". Se preferir que a página nem apareça no menu até o primeiro
-tutorial ficar pronto, apague a linha `tutoriais` da lista `menu`, em
-`dados/config.js`.
+Enquanto a lista estiver vazia, a aba mostra "Os primeiros tutoriais estão
+sendo preparados".
+
+### Adicionar um modelo
+
+1. Suba o arquivo para o Google Drive.
+2. **Botão direito → Compartilhar → Acesso geral: "Qualquer pessoa com o link"**
+   (como *Leitor*) → **Copiar link**. Sem isso o aluno cai em "Solicitar acesso".
+3. Abra `dados/modelos.js` e acrescente um bloco na lista `MODELOS`:
+
+```js
+{
+  titulo: "Dissertação de mestrado — PPGQ-UERJ",
+  categoria: "teses",
+  formato: "LaTeX",
+  extensao: ".zip",
+  tamanho: "1,2 MB",
+  atualizado: "mar. 2027",
+  resumo: "Estrutura completa com elementos pré-textuais nas normas do programa.",
+  detalhes: [
+    "Compile com `latexmk -pdf main.tex`.",
+  ],
+  link: "https://drive.google.com/file/d/o-id-do-arquivo/view?usp=sharing",
+  capa: "assets/img/modelos/dissertacao.jpg",
+},
+```
+
+- **Não é preciso gerar link de download.** O site transforma o link do Drive em
+  download direto sozinho: o botão **Baixar modelo** baixa o arquivo, e **Ver no
+  Drive** abre a pré-visualização.
+- `categoria` tem que ser um dos `id` de `CATEGORIAS_MODELOS`, no topo do arquivo:
+  `poster`, `teses`, `artigos` ou `registro`. Se não bater, o modelo não aparece
+  (e o Console do navegador, F12, avisa qual foi).
+- **Categoria sem modelo não some:** vai para o quadro "Em preparação", no fim da
+  aba. Assim que você cadastrar o primeiro modelo dela, ela ganha a própria seção.
+- **Criar uma categoria nova:** acrescente um bloco em `CATEGORIAS_MODELOS`
+  (ex.: `{ id: "slides", titulo: "Apresentações", icone: "quadro", cor: "vermelho", resumo: "..." }`).
+- `detalhes` é opcional: são as instruções com o ✓ no cartão. O que estiver entre
+  crases (`` `assim` ``) aparece como código.
+
+**Miniatura (`capa`).** É a imagem da primeira página que aparece no cartão.
+Salve em `assets/img/modelos/`, em retrato, com uns 600 px de altura. No Mac, a
+forma mais rápida de gerar é pelo Terminal, a partir do PDF ou do arquivo do Word:
+
+```
+qlmanage -t -s 900 -o . arquivo.pdf
+sips -s format jpeg -Z 600 arquivo.pdf.png --out assets/img/modelos/nome.jpg
+```
+
+Sem miniatura (`capa: ""`), o cartão mostra o ícone da categoria.
+
+**Atualizar um modelo sem trocar o link:** no Drive, botão direito no arquivo →
+**Gerenciar versões → Enviar nova versão**. O link continua o mesmo; em
+`modelos.js` basta mudar `atualizado` (e `tamanho`, se mudou).
 
 ---
 

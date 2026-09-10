@@ -3,8 +3,10 @@
    --------------------------------------------------------------------------
    Este arquivo NAO precisa ser editado no dia a dia. Ele apenas:
      - monta o cabecalho e o rodape em todas as paginas (a partir de config.js)
-     - desenha as listas de equipe, publicacoes e projetos (a partir de dados/)
-     - cuida do menu no celular e dos filtros da pagina de publicacoes
+     - desenha as listas de equipe, publicacoes, projetos, tutoriais e
+       modelos (a partir de dados/)
+     - cuida do menu no celular, dos filtros da pagina de publicacoes e das
+       abas da pagina de materiais
 
    Para mudar CONTEUDO, edite os arquivos da pasta dados/.
    Para mudar APARENCIA, edite assets/css/site.css.
@@ -25,6 +27,11 @@
   // Converte **texto** em <strong>texto</strong> (usado na lista de autores).
   function negrito(valor) {
     return esc(valor).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  }
+
+  // Converte `texto` em <code>texto</code> (nomes de arquivo e comandos).
+  function codigo(valor) {
+    return esc(valor).replace(/`(.+?)`/g, "<code>$1</code>");
   }
 
   function iniciais(nome) {
@@ -71,6 +78,10 @@
     lupa: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.3-4.3",
     orcid: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM8.5 8.5v7M8.5 6.2v.1M12 15.5v-7h1.8a3.5 3.5 0 0 1 0 7z",
     link: "M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7",
+    baixar: "M12 3v12M7 10l5 5 5-5M4 21h16",
+    quadro: "M3 4h18v12H3zM12 16v5M8 21h8M7 8h10M7 12h6",
+    prancheta: "M9 3h6v4H9zM9 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3M9 12h6M9 16h4",
+    info: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 16v-5M12 8h.01",
   };
 
   function icone(nome, classe) {
@@ -502,11 +513,19 @@
     }).join("");
   }
 
-  /* --- tutoriais --------------------------------------------------------- */
+  /* --- materiais: tutoriais ---------------------------------------------- */
+
+  // Mostra a quantidade de itens no rotulo de uma aba (<span data-conta="...">).
+  function contar(nome, total) {
+    var alvo = achar('[data-conta="' + nome + '"]');
+    if (alvo) alvo.textContent = total;
+  }
 
   function montarTutoriais() {
     var alvo = achar("[data-tutoriais]");
     if (!alvo || typeof TUTORIAIS === "undefined") return;
+
+    contar("tutoriais", TUTORIAIS.length);
 
     if (!TUTORIAIS.length) {
       alvo.innerHTML =
@@ -527,6 +546,206 @@
         "</article>"
       );
     }).join("");
+  }
+
+  /* --- materiais: modelos do laboratorio -------------------------------- */
+
+  // Transforma o link "Compartilhar" do Google Drive (.../file/d/ID/view) em
+  // link de download direto. Links que nao sao do Drive passam sem mudanca.
+  function linkDownload(link) {
+    var achado = /drive\.google\.com\/.*?(?:\/d\/|[?&]id=)([\w-]{10,})/.exec(String(link || ""));
+    return achado ? "https://drive.google.com/uc?export=download&id=" + achado[1] : link;
+  }
+
+  function cartaoModelo(m, categoria) {
+    var cor = categoria.cor || "azul";
+
+    var etiquetas = [];
+    if (m.formato) {
+      etiquetas.push('<span class="etiqueta etiqueta--' + esc(cor) + '">' + esc(m.formato) + "</span>");
+    }
+    var arquivo = [m.extensao, m.tamanho].filter(Boolean).join(" · ");
+    if (arquivo) {
+      etiquetas.push('<span class="etiqueta etiqueta--neutra">' + esc(arquivo) + "</span>");
+    }
+
+    var detalhes = m.detalhes && m.detalhes.length
+      ? '<ul class="regras modelo__detalhes">' +
+        // O <span> e necessario: cada <li> de .regras e uma grade de duas
+        // colunas (✓ e texto), e sem ele cada <code> viraria uma coluna.
+        m.detalhes.map(function (d) { return "<li><span>" + codigo(d) + "</span></li>"; }).join("") +
+        "</ul>"
+      : "";
+
+    // A miniatura repete o link "Ver no Drive"; fica fora do teclado e do
+    // leitor de tela para nao anunciar o mesmo destino duas vezes.
+    var capa =
+      '<a class="modelo__capa" href="' + esc(m.link) + '" target="_blank" rel="noopener" ' +
+      'tabindex="-1" aria-hidden="true">' +
+      (m.capa ? '<img src="' + esc(m.capa) + '" alt="" loading="lazy">' : icone(categoria.icone || "documento")) +
+      "</a>";
+
+    return (
+      '<article class="modelo" style="--cor-destaque:var(--' + esc(cor) + ')">' +
+      capa +
+      "<div>" +
+      (etiquetas.length ? '<div class="modelo__etiquetas">' + etiquetas.join("") + "</div>" : "") +
+      '<h4 class="modelo__titulo">' + esc(m.titulo) + "</h4>" +
+      (m.resumo ? '<p class="modelo__resumo">' + esc(m.resumo) + "</p>" : "") +
+      detalhes +
+      '<div class="modelo__acoes">' +
+      '<a class="botao" href="' + esc(linkDownload(m.link)) + '" rel="noopener">' +
+      icone("baixar") + "Baixar modelo" +
+      '<span class="somente-leitor"> ' + esc(m.titulo) + "</span></a>" +
+      '<a class="botao botao--secundario" href="' + esc(m.link) + '" target="_blank" rel="noopener">' +
+      "Ver no Drive" + icone("externo") + "</a>" +
+      (m.atualizado ? '<span class="modelo__data">Atualizado em ' + esc(m.atualizado) + "</span>" : "") +
+      "</div>" +
+      "</div>" +
+      "</article>"
+    );
+  }
+
+  function montarModelos() {
+    var alvo = achar("[data-modelos]");
+    if (!alvo || typeof MODELOS === "undefined" || typeof CATEGORIAS_MODELOS === "undefined") return;
+
+    contar("modelos", MODELOS.length);
+
+    var ids = CATEGORIAS_MODELOS.map(function (c) { return c.id; });
+    MODELOS.forEach(function (m) {
+      if (ids.indexOf(m.categoria) === -1) {
+        console.warn(
+          'LQTSM: o modelo "' + m.titulo + '" tem categoria "' + m.categoria +
+          '", que não existe em CATEGORIAS_MODELOS, e não aparece no site.'
+        );
+      }
+    });
+
+    var prontas = [];
+    var emPreparo = [];
+    CATEGORIAS_MODELOS.forEach(function (categoria) {
+      var itens = MODELOS.filter(function (m) { return m.categoria === categoria.id; });
+      (itens.length ? prontas : emPreparo).push({ categoria: categoria, itens: itens });
+    });
+
+    var html = prontas.length
+      ? prontas.map(function (grupo) {
+          var c = grupo.categoria;
+          return (
+            '<section class="categoria" id="modelos-' + esc(c.id) +
+            '" style="--cor-destaque:var(--' + esc(c.cor || "azul") + ')">' +
+            '<div class="categoria__titulo">' +
+            '<span class="cartao__icone">' + icone(c.icone || "documento") + "</span>" +
+            "<div><h3>" + esc(c.titulo) + "</h3>" +
+            (c.resumo ? "<p>" + esc(c.resumo) + "</p>" : "") +
+            "</div></div>" +
+            '<div class="pilha">' +
+            grupo.itens.map(function (m) { return cartaoModelo(m, c); }).join("") +
+            "</div></section>"
+          );
+        }).join("")
+      : '<p class="vazio">Os primeiros modelos estão sendo preparados. Volte em breve.</p>';
+
+    if (emPreparo.length) {
+      html +=
+        '<aside class="em-preparo">' +
+        "<h3>Em preparação</h3>" +
+        "<p>Estes modelos estão sendo organizados e aparecem aqui assim que ficarem prontos.</p>" +
+        '<ul class="em-preparo__lista">' +
+        emPreparo.map(function (grupo) {
+          return "<li>" + icone(grupo.categoria.icone || "documento") + esc(grupo.categoria.titulo) + "</li>";
+        }).join("") +
+        "</ul></aside>";
+    }
+
+    alvo.innerHTML = html;
+  }
+
+  /* --- materiais: abas --------------------------------------------------- */
+  /* Segue o padrao de abas da WAI-ARIA: as setas do teclado trocam de aba.
+     O endereco acompanha a aba aberta (materiais.html#modelos), para que o
+     link possa ser mandado direto para a aba certa. Tambem aceita um trecho
+     de dentro da aba, como materiais.html#modelos-poster. */
+
+  function montarAbas() {
+    var barra = achar("[data-abas]");
+    if (!barra) return;
+    var abas = Array.prototype.slice.call(barra.querySelectorAll('[role="tab"]'));
+    if (!abas.length) return;
+
+    function painelDe(aba) {
+      return document.getElementById(aba.getAttribute("aria-controls"));
+    }
+
+    function hashAtual() {
+      try {
+        return decodeURIComponent(location.hash.slice(1));
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function ativar(aba, opcoes) {
+      opcoes = opcoes || {};
+      abas.forEach(function (outra) {
+        var ativa = outra === aba;
+        outra.setAttribute("aria-selected", String(ativa));
+        outra.tabIndex = ativa ? 0 : -1;
+        var painel = painelDe(outra);
+        if (painel) painel.hidden = !ativa;
+      });
+
+      if (opcoes.foco) aba.focus();
+      if (opcoes.endereco && hashAtual() !== aba.getAttribute("data-aba")) {
+        try {
+          history.replaceState(null, "", "#" + aba.getAttribute("data-aba"));
+        } catch (e) { /* arquivo aberto localmente em navegador restrito */ }
+      }
+
+      // Se a pessoa ja desceu a pagina, a barra esta presa no topo: volta para
+      // o comeco do conteudo da aba, em vez de deixa-la no meio do painel novo.
+      var painelAtivo = painelDe(aba);
+      if (opcoes.rolar && painelAtivo) {
+        var topo = achar(".topo");
+        var alvoY =
+          painelAtivo.getBoundingClientRect().top + window.pageYOffset -
+          barra.offsetHeight - (topo ? topo.offsetHeight : 0);
+        if (window.pageYOffset > alvoY) window.scrollTo(0, alvoY);
+      }
+    }
+
+    function seguirEndereco() {
+      var hash = hashAtual();
+      if (!hash) return;
+      var aba = abas.filter(function (a) {
+        var nome = a.getAttribute("data-aba");
+        return hash === nome || hash.indexOf(nome + "-") === 0;
+      })[0];
+      if (!aba) return;
+      ativar(aba);
+      // So da para rolar ate um trecho de dentro da aba depois que o painel
+      // deixa de estar escondido.
+      var destino = hash !== aba.getAttribute("data-aba") && document.getElementById(hash);
+      if (destino) destino.scrollIntoView();
+    }
+
+    barra.addEventListener("click", function (e) {
+      var aba = e.target.closest('[role="tab"]');
+      if (aba) ativar(aba, { endereco: true, rolar: true });
+    });
+
+    barra.addEventListener("keydown", function (e) {
+      var i = abas.indexOf(document.activeElement);
+      if (i === -1) return;
+      var j = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: abas.length - 1 }[e.key];
+      if (j === undefined) return;
+      e.preventDefault();
+      ativar(abas[(j + abas.length) % abas.length], { foco: true, endereco: true });
+    });
+
+    window.addEventListener("hashchange", seguirEndereco);
+    seguirEndereco();
   }
 
   /* --- marca: copiar codigo de cor com um clique ------------------------- */
@@ -625,6 +844,8 @@
     montarProjetos();
     montarFerramentas();
     montarTutoriais();
+    montarModelos();
+    montarAbas(); // depois das listas, para poder rolar ate um trecho delas
     montarCopiaCor();
     montarContato();
     montarFormulario();
