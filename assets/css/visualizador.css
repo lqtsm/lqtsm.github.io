@@ -1,0 +1,245 @@
+/* ==========================================================================
+   VISUALIZADOR DE MOLECULAS (so carregado em visualizador.html)
+   --------------------------------------------------------------------------
+   Usa as variaveis de cor e fonte de site.css. Painel de controles a
+   esquerda, janela da molecula a direita; empilha no celular.
+   ========================================================================== */
+
+.vis-trilha {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+}
+.vis-trilha a {
+  color: #cfe3f2;
+  text-decoration: none;
+}
+.vis-trilha a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.vis {
+  display: grid;
+  grid-template-columns: minmax(0, 330px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .vis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* No celular a molecula vem primeiro e os controles depois */
+  .vis-palco {
+    order: -1;
+  }
+}
+
+.vis-painel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+  padding: 1.1rem;
+  background: var(--fundo-suave);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+}
+.vis-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.vis-bloco + .vis-bloco {
+  padding-top: 1rem;
+  border-top: 1px solid var(--linha);
+}
+.vis-rotulo,
+.vis .lab {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--azul-escuro);
+}
+.vis textarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  padding: 0.6rem;
+  font: 0.8rem/1.4 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  white-space: pre;
+  overflow: auto;
+  color: var(--tinta);
+  background: var(--fundo);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+}
+.vis select {
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--tinta);
+  background: var(--fundo);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+}
+.vis .botao {
+  padding: 0.55rem 1rem;
+}
+.vis textarea:focus-visible,
+.vis select:focus-visible,
+.vis input:focus-visible,
+.vis button:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: 2px;
+}
+.vis-linha,
+.vis .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.vis-linha input[type="range"] {
+  flex: 1;
+  min-width: 90px;
+  accent-color: var(--azul);
+}
+.vis-dica,
+.vis .hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--tinta-suave);
+}
+.vis-chk {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+.vis-chk input {
+  accent-color: var(--azul);
+}
+.vis-num,
+.vis .num {
+  font-variant-numeric: tabular-nums;
+}
+.vis-tracejado {
+  display: inline-block;
+  width: 18px;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+  border-top: 2px dashed var(--laranja);
+}
+.vis-campos {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem 0.75rem;
+  align-items: center;
+}
+
+/* Botoes segmentados do estilo de desenho */
+.vis-seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+  background: var(--fundo);
+}
+.vis-seg button {
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--tinta-media);
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--linha);
+  cursor: pointer;
+}
+.vis-seg button:nth-child(2n) {
+  border-right: 0;
+}
+.vis-seg button:nth-child(-n + 2) {
+  border-bottom: 1px solid var(--linha);
+}
+.vis-seg button[aria-pressed="true"] {
+  background: var(--azul);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Janela da molecula e resultados */
+.vis-palco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+#viewer {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-1);
+}
+#cv {
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+#cv:active {
+  cursor: grabbing;
+}
+.vis-status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--tinta-suave);
+}
+.vis-status b {
+  color: var(--tinta);
+}
+.vis-tabela {
+  overflow-x: auto;
+}
+.vis-tabela table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.vis-tabela th,
+.vis-tabela td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--linha);
+}
+.vis-tabela th {
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+.vis-tabela .r {
+  text-align: right;
+}
+.vis-saida {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.vis-saida img {
+  max-width: 100%;
+  border: 1px dashed var(--linha);
+  border-radius: var(--raio-pequeno);
+  background: repeating-conic-gradient(var(--linha) 0 25%, transparent 0 50%) 0 0 / 16px 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vis * {
+    transition: none !important;
+  }
+}

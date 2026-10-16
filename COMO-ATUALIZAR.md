@@ -19,7 +19,9 @@ lqtsm.github.io/
 │   ├── pesquisa.js          Linhas de pesquisa, projetos e ferramentas
 │   ├── publicacoes.js       Artigos publicados
 │   ├── tutoriais.js         Links dos tutoriais no Notion
-│   └── modelos.js           Modelos do laboratório (arquivos no Google Drive)
+│   ├── modelos.js           Modelos do laboratório (arquivos no Google Drive)
+│   ├── ferramentas-online.js Ferramentas da aba Ferramentas (página Materiais)
+│   └── moleculas-exemplo.js Moléculas do menu Exemplos do visualizador
 │
 ├── assets/
 │   ├── css/site.css         Aparência (cores, espaçamentos, tipografia)
@@ -30,7 +32,8 @@ lqtsm.github.io/
 ├── equipe.html              Equipe
 ├── pesquisa.html            Pesquisa
 ├── publicacoes.html         Publicações
-├── materiais.html           Materiais: abas Tutoriais e Modelos do laboratório
+├── materiais.html           Materiais: abas Tutoriais, Modelos do laboratório e Ferramentas
+├── visualizador.html        Visualizador de moléculas (aberto pela aba Ferramentas)
 ├── tutoriais.html           Só redireciona para materiais.html#tutoriais (links antigos)
 ├── marca.html               Download do logotipo, cores e uso
 ├── contato.html             Contato
@@ -217,6 +220,28 @@ Sem miniatura (`capa: ""`), o cartão mostra o ícone da categoria.
 **Atualizar um modelo sem trocar o link:** no Drive, botão direito no arquivo →
 **Gerenciar versões → Enviar nova versão**. O link continua o mesmo; em
 `modelos.js` basta mudar `atualizado` (e `tamanho`, se mudou).
+
+---
+
+## 3c. Ferramentas e visualizador de moléculas
+
+A aba **Ferramentas** da página Materiais lista o que está em
+`dados/ferramentas-online.js`. Para incluir uma ferramenta nova, copie um bloco
+`{ titulo, link, resumo }` e troque os dados.
+
+O **visualizador de moléculas** (`visualizador.html`) é uma página do próprio site:
+
+| Arquivo | O que faz |
+|---|---|
+| `visualizador.html` | Estrutura da página (controles e janela da molécula) |
+| `assets/js/visualizador.js` | Motor: leitura do XYZ, desenho, ligações de H, exportação do PNG |
+| `assets/css/visualizador.css` | Aparência (usa as cores de `site.css`) |
+| `dados/moleculas-exemplo.js` | Moléculas do menu "Exemplos" |
+
+Para trocar os exemplos, edite `dados/moleculas-exemplo.js`: nome entre aspas e,
+entre crases, uma linha por átomo (`C  0.000  1.234  -0.567`, em Å). A primeira
+molécula da lista é a que abre com a página. **Não coloque geometrias de trabalhos
+ainda não publicados**: o site é público.
 
 ---
 

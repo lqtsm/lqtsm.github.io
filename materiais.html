@@ -27,8 +27,8 @@
       <div class="container faixa__interno">
         <h1>Materiais</h1>
         <p>Material de apoio para quem faz parte do laboratório: tutoriais para rodar os cálculos e
-          usar os programas, e os modelos oficiais do grupo para pôsteres, textos acadêmicos e o
-          registro das atividades.</p>
+          usar os programas, os modelos oficiais do grupo para pôsteres, textos acadêmicos e o
+          registro das atividades, e ferramentas que rodam no navegador.</p>
       </div>
     </section>
 
@@ -46,6 +46,10 @@
         <button class="abas__botao" type="button" role="tab" id="aba-modelos" data-aba="modelos"
           aria-controls="painel-modelos" aria-selected="false" tabindex="-1">
           Modelos do laboratório <span class="abas__contagem" data-conta="modelos"></span>
+        </button>
+        <button class="abas__botao" type="button" role="tab" id="aba-ferramentas" data-aba="ferramentas"
+          aria-controls="painel-ferramentas" aria-selected="false" tabindex="-1">
+          Ferramentas <span class="abas__contagem" data-conta="ferramentas"></span>
         </button>
       </div>
     </div>
@@ -88,6 +92,19 @@
       </div>
     </section>
 
+    <!-- FERRAMENTAS ------------------------------------------------------- -->
+    <section class="secao painel" id="painel-ferramentas" role="tabpanel" aria-labelledby="aba-ferramentas" hidden>
+      <div class="container">
+        <div class="secao__titulo">
+          <h2>Ferramentas</h2>
+          <p>Aplicativos que rodam direto no navegador, sem instalação. Nenhum dado que você digita
+            sai do seu computador.</p>
+        </div>
+        <!-- Lista gerada a partir de dados/ferramentas-online.js -->
+        <div class="pilha" data-ferramentas-online></div>
+      </div>
+    </section>
+
   </main>
 
   <footer data-rodape></footer>
@@ -95,6 +112,7 @@
   <script src="dados/config.js"></script>
   <script src="dados/tutoriais.js"></script>
   <script src="dados/modelos.js"></script>
+  <script src="dados/ferramentas-online.js"></script>
   <script src="assets/js/site.js"></script>
 </body>
 

@@ -17,6 +17,8 @@ Todo o conteúdo que muda com frequência está na pasta [`dados/`](dados/):
 | [`dados/publicacoes.js`](dados/publicacoes.js) | Artigos publicados |
 | [`dados/tutoriais.js`](dados/tutoriais.js) | Links dos tutoriais no Notion (página Materiais) |
 | [`dados/modelos.js`](dados/modelos.js) | Modelos do laboratório no Google Drive (página Materiais) |
+| [`dados/ferramentas-online.js`](dados/ferramentas-online.js) | Ferramentas da aba Ferramentas (página Materiais) |
+| [`dados/moleculas-exemplo.js`](dados/moleculas-exemplo.js) | Exemplos do visualizador de moléculas |
 
 O passo a passo completo, com exemplos prontos para copiar, está em
 **[COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)**.

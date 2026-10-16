@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador de moléculas | LQTSM — UERJ</title>
+  <meta name="description"
+    content="Visualizador de moléculas do LQTSM: cole coordenadas XYZ, veja a estrutura em 3D, meça ligações de hidrogênio e exporte figuras em PNG com resolução de publicação.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/visualizador.css">
+</head>
+
+<!-- data-pagina="materiais": a ferramenta fica dentro de Materiais, entao o
+     item Materiais do menu aparece marcado nesta pagina. -->
+<body data-pagina="materiais">
+
+  <header data-topo></header>
+
+  <main>
+
+    <section class="faixa">
+      <img class="faixa__fundo" src="assets/img/curvas.svg" alt="" aria-hidden="true">
+      <div class="container faixa__interno">
+        <p class="vis-trilha"><a href="materiais.html#ferramentas">Materiais › Ferramentas</a></p>
+        <h1>Visualizador de moléculas</h1>
+        <p>Cole as coordenadas de uma molécula ou de um complexo, gire a estrutura, meça distâncias e
+          ligações de hidrogênio e exporte a figura em PNG com resolução de publicação. Tudo roda no
+          seu navegador: as coordenadas não são enviadas a nenhum servidor.</p>
+      </div>
+    </section>
+
+    <section class="secao secao--compacta">
+      <div class="container vis">
+
+        <div class="vis-painel">
+          <div class="vis-bloco">
+            <label class="vis-rotulo" for="xyz">Coordenadas (Å)</label>
+            <textarea id="xyz" spellcheck="false"></textarea>
+            <div class="vis-linha">
+              <button class="botao" type="button" id="btnLoad">Desenhar</button>
+              <select id="exSel" aria-label="Exemplos"><option value="">Exemplos…</option></select>
+            </div>
+            <p class="vis-dica">Aceita arquivo .xyz, o bloco CARTESIAN COORDINATES do ORCA ou o Standard
+              orientation do Gaussian. Linhas que não são átomos são ignoradas. Ctrl+Enter também desenha.</p>
+          </div>
+
+          <div class="vis-bloco">
+            <span class="vis-rotulo">Estilo</span>
+            <div class="vis-seg" id="styleSeg" role="group" aria-label="Estilo">
+              <button type="button" data-v="bs" aria-pressed="true">Bola e bastão</button>
+              <button type="button" data-v="stick" aria-pressed="false">Bastão</button>
+              <button type="button" data-v="sphere" aria-pressed="false">Esferas</button>
+              <button type="button" data-v="line" aria-pressed="false">Linha</button>
+            </div>
+            <div class="vis-linha">
+              <label class="vis-chk"><input type="checkbox" id="greyC" checked> carbono cinza</label>
+              <label class="vis-chk"><input type="checkbox" id="showIdx"> numerar átomos</label>
+            </div>
+          </div>
+
+          <div class="vis-bloco">
+            <span class="vis-rotulo">Ligações de hidrogênio</span>
+            <label class="vis-chk"><input type="checkbox" id="showHB" checked>
+              <span><span class="vis-tracejado" aria-hidden="true"></span>mostrar D-H···A (D, A = N, O, F)</span></label>
+            <div class="vis-linha"><label for="hbCut">H···A ≤</label><input type="range" id="hbCut" min="1.6" max="3.0" step="0.05" value="2.5"><span class="vis-num" id="hbCutV">2.50 Å</span></div>
+            <div class="vis-linha"><label for="hbAng">ângulo ≥</label><input type="range" id="hbAng" min="100" max="180" step="5" value="130"><span class="vis-num" id="hbAngV">130°</span></div>
+            <label class="vis-chk"><input type="checkbox" id="hbLab" checked> rótulo com a distância H···A</label>
+          </div>
+
+          <div class="vis-bloco">
+            <span class="vis-rotulo">Exportar figura</span>
+            <div class="vis-campos">
+              <label for="bgSel">Fundo</label>
+              <select id="bgSel">
+                <option value="white">branco</option>
+                <option value="transparent">transparente</option>
+                <option value="black">preto</option>
+              </select>
+              <label for="decSel">Decimal</label>
+              <select id="decSel">
+                <option value=".">ponto (inglês)</option>
+                <option value=",">vírgula (português)</option>
+              </select>
+              <label for="dpiSel">Qualidade</label>
+              <select id="dpiSel">
+                <option value="300">300 dpi</option>
+                <option value="600" selected>600 dpi</option>
+                <option value="900">900 dpi</option>
+              </select>
+              <label for="wSel">Largura</label>
+              <select id="wSel">
+                <option value="8.5" selected>8,5 cm (1 coluna)</option>
+                <option value="12">12 cm (1,5 coluna)</option>
+                <option value="17.5">17,5 cm (2 colunas)</option>
+                <option value="5">5 cm (painel pequeno)</option>
+              </select>
+            </div>
+            <label class="vis-chk"><input type="checkbox" id="cropC" checked> recortar margens em branco</label>
+            <div class="vis-linha">
+              <button class="botao" type="button" id="btnPng">Gerar PNG</button>
+              <button class="botao botao--secundario" type="button" id="btnReset">Recentrar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="vis-palco">
+          <div id="viewer"><canvas id="cv" aria-label="Janela 3D da molécula"></canvas></div>
+          <p class="vis-status" id="status"></p>
+          <div class="vis-tabela" id="hbTable"></div>
+          <div class="vis-saida" id="out"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer data-rodape></footer>
+
+  <script src="dados/config.js"></script>
+  <script src="assets/js/site.js"></script>
+  <script src="dados/moleculas-exemplo.js"></script>
+  <script src="assets/js/visualizador.js"></script>
+</body>
+
+</html>

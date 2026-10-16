@@ -548,6 +548,35 @@
     }).join("");
   }
 
+  /* --- materiais: ferramentas online ------------------------------------ */
+
+  function montarFerramentasOnline() {
+    var alvo = achar("[data-ferramentas-online]");
+    if (!alvo || typeof FERRAMENTAS_ONLINE === "undefined") return;
+
+    contar("ferramentas", FERRAMENTAS_ONLINE.length);
+
+    if (!FERRAMENTAS_ONLINE.length) {
+      alvo.innerHTML = '<p class="vazio">As primeiras ferramentas estão sendo preparadas. Volte em breve.</p>';
+      return;
+    }
+
+    alvo.innerHTML = FERRAMENTAS_ONLINE.map(function (f) {
+      var externo = /^https?:/.test(f.link);
+      return (
+        '<article class="tutorial">' +
+        "<div>" +
+        '<h3 class="tutorial__titulo">' + esc(f.titulo) + "</h3>" +
+        (f.resumo ? '<p class="tutorial__resumo">' + esc(f.resumo) + "</p>" : "") +
+        "</div>" +
+        '<a class="botao" href="' + esc(f.link) + '"' +
+        (externo ? ' target="_blank" rel="noopener"' : "") + ">" +
+        "Abrir ferramenta" + icone(externo ? "externo" : "seta") + "</a>" +
+        "</article>"
+      );
+    }).join("");
+  }
+
   /* --- materiais: modelos do laboratorio -------------------------------- */
 
   // Transforma o link "Compartilhar" do Google Drive (.../file/d/ID/view) em
@@ -847,6 +876,7 @@
     montarFerramentas();
     montarTutoriais();
     montarModelos();
+    montarFerramentasOnline();
     montarAbas(); // depois das listas, para poder rolar ate um trecho delas
     montarCopiaCor();
     montarContato();
