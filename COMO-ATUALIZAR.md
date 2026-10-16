@@ -245,7 +245,7 @@ molécula da lista é a que abre com a página. No mesmo arquivo, `SMILES_EXEMPL
 (nome e código). **Não coloque geometrias de trabalhos
 ainda não publicados**: o site é público.
 
-A opção **SMILES** só funciona com o site publicado (ou servido por um servidor
+As opções **SMILES** e **Desenhar** (editor de estruturas, do próprio OpenChemLib) só funcionam com o site publicado (ou servido por um servidor
 local, por exemplo `python3 -m http.server` na pasta do repositório). Abrindo
 `visualizador.html` direto como arquivo, o navegador bloqueia a biblioteca e a
 página avisa isso; o modo XYZ continua funcionando.

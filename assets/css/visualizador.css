@@ -201,9 +201,35 @@
   text-decoration: underline;
   cursor: pointer;
 }
+.vis-seg--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.vis-seg--3 button {
+  border-bottom: 0 !important;
+  border-right: 1px solid var(--linha) !important;
+}
+.vis-seg--3 button:last-child {
+  border-right: 0 !important;
+}
+.vis input[readonly] {
+  background: var(--fundo-suave);
+}
+#ved {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+}
+#ved.vis-oculto {
+  visibility: hidden;
+  pointer-events: none;
+}
+#viewer.vis-editor {
+  aspect-ratio: auto;
+  height: min(78vh, 620px);
+}
 .vis-vista {
   align-self: flex-start;
-  min-width: 260px;
+  min-width: min(100%, 360px);
 }
 #v2d {
   position: absolute;

@@ -172,6 +172,7 @@ function render(g, W, H, opts){
 
 let lastP=[];
 function draw(){
+  if (vista!=="3d") return;
   const box=$("viewer"), dpr=window.devicePixelRatio||1, W=box.clientWidth, H=box.clientHeight;
   cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.width=W+"px"; cv.style.height=H+"px";
   const bg=$("bgSel").value==="black"?"black":"white";
@@ -234,7 +235,8 @@ function exporta(){
   return {fin, dpi, cm};
 }
 async function png(){
-  if (vista==="2d" && !svg2d){ status("Desenhe a estrutura 2D antes de exportar."); return; }
+  if (vista==="ed"){ await desenha2d(true); if (vista!=="2d") return; }
+  if (vista==="2d" && !svg2d){ status("Gere a estrutura 2D antes de exportar."); return; }
   const {fin, dpi, cm} = vista==="2d" ? await exporta2d() : exporta();
   const blobP=new Promise(res=>fin.toBlob(b=>comDpi(b,dpi).then(res)));
   const info=`PNG ${fin.width} × ${fin.height} px · ${String(cm).replace(".",",")} × ${(fin.height/dpi*2.54).toFixed(1).replace(".",",")} cm a ${dpi} dpi`;
@@ -309,13 +311,52 @@ function avisoOcl(e){
 }
 function modoEntrada(m){
   $("inSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.v===m));
-  $("blocoXyz").hidden = m!=="xyz"; $("blocoSmi").hidden = m!=="smi";
+  $("blocoXyz").hidden = m!=="xyz"; $("blocoSmi").hidden = m!=="smi"; $("blocoEd").hidden = m!=="ed";
+  if (m==="ed") abreEditor();
+  else if (vista==="ed") mostraVista(svg2d ? "2d" : "3d");
+}
+
+/* --- editor de desenho (CanvasEditor do OpenChemLib) --------------------- */
+let editor=null;
+function smilesDoEditor(){
+  if (!editor) return "";
+  const m=editor.getMolecule();
+  return m.getAllAtoms() ? m.toIsomericSmiles() : "";
+}
+async function abreEditor(smiInicial){
+  let O; try { O=await ocl(); } catch(e){ avisoOcl(e); modoEntrada("xyz"); return; }
+  mostraVista("ed");
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));   // espera o quadro ganhar tamanho
+  if (!editor){
+    editor=new O.CanvasEditor($("ved"), {initialMode:"molecule"});
+    editor.setOnChangeListener(()=>{ $("edSmi").value=smilesDoEditor(); });
+  }
+  if (smiInicial){
+    try {
+      // ajusta escala e posicao ao quadro do editor (ligacao ~ 32 px, centrado)
+      const m=O.Molecule.fromSmiles(smiInicial), box=$("ved"), n=m.getAllAtoms();
+      const L=m.getAverageBondLength(true)||1; m.scaleCoords(32/L);
+      let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+      for (let i=0;i<n;i++){ const x=m.getAtomX(i), y=m.getAtomY(i); x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); }
+      m.translateCoords(box.clientWidth/2+24-(x0+x1)/2, box.clientHeight/2-(y0+y1)/2);
+      // copia para a molecula que o editor ja edita (setMolecule zera as coordenadas nesta versao)
+      const em=editor.getMolecule(); em.deleteMolecule(); em.addMolecule(m); editor.moleculeChanged();
+    } catch(e){ status("SMILES inválido: "+(e.message||e)); }
+  }
+  $("edSmi").value=smilesDoEditor();
+  status("Desenhe na área ao lado: escolha a ferramenta na barra (ligação, anel, átomo) e clique ou arraste na tela. Depois use \"Estrutura 2D\" ou \"Gerar 3D\".");
 }
 function mostraVista(v){
   vista=v;
   $("vistaSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.v===v));
   $("cv").hidden = v!=="3d"; $("v2d").hidden = v!=="2d";
-  $("vistaSeg").hidden = !svg2d;
+  // o editor nunca recebe display:none: com largura zero ele encolhe o desenho para o ponto (0,0)
+  $("ved").hidden = !editor && v!=="ed";
+  $("ved").classList.toggle("vis-oculto", v!=="ed");
+  $("viewer").classList.toggle("vis-editor", v==="ed");
+  $("vistaSeg").hidden = !(svg2d || editor);
+  $("vistaSeg").querySelector('[data-v="2d"]').hidden = !svg2d;
+  $("vistaSeg").querySelector('[data-v="ed"]').hidden = !editor;
   document.querySelectorAll("[data-so3d]").forEach(el=>el.hidden = v!=="3d");
   document.querySelectorAll("[data-so2d]").forEach(el=>el.hidden = v!=="2d");
   $("out").innerHTML="";
@@ -333,10 +374,17 @@ function svgFinal(paraArquivo){
   }
   return t;
 }
-async function desenha2d(){
-  const smi=$("smi").value.trim(); if (!smi){ status("Digite um código SMILES."); return; }
+async function desenha2d(doEditor){
   let O; try { O=await ocl(); } catch(e){ avisoOcl(e); return; }
-  let m; try { m=O.Molecule.fromSmiles(smi); } catch(e){ status("SMILES inválido: "+(e.message||e)); return; }
+  let m;
+  if (doEditor===true){
+    // usa o desenho como esta, com as posicoes que a pessoa escolheu
+    if (!editor || !editor.getMolecule().getAllAtoms()){ status("O desenho está vazio."); return; }
+    m=editor.getMolecule().getCompactCopy();
+  } else {
+    const smi=$("smi").value.trim(); if (!smi){ status("Digite um código SMILES."); return; }
+    try { m=O.Molecule.fromSmiles(smi); } catch(e){ status("SMILES inválido: "+(e.message||e)); return; }
+  }
   mol2d=m;
   svg2d=m.toSVG(600,400,"estrutura2d",{autoCrop:true, autoCropMargin:12, strokeWidth:1, factorTextSize:1.19, suppressChiralText:true});
   $("v2d").innerHTML=svgFinal(false);
@@ -344,8 +392,9 @@ async function desenha2d(){
   const f=m.getMolecularFormula();
   status(`Estrutura 2D · ${f.formula} · ${f.relativeWeight.toFixed(2).replace(".",$("decSel").value)} g/mol · estilo ACS (ChemDraw). Use "Gerar 3D" para a geometria.`);
 }
-async function gera3d(){
-  const smi=$("smi").value.trim(); if (!smi){ status("Digite um código SMILES."); return; }
+async function gera3d(doEditor){
+  const smi = doEditor===true ? smilesDoEditor() : $("smi").value.trim();
+  if (!smi){ status(doEditor===true ? "O desenho está vazio." : "Digite um código SMILES."); return; }
   status("Gerando a geometria 3D…");
   let O; try { O=await ocl(); if (!recursosOk){ await O.Resources.registerFromUrl(urlVendor("resources.json")); recursosOk=true; } } catch(e){ avisoOcl(e); return; }
   try {
@@ -397,9 +446,14 @@ function init(){
   // SMILES
   $("inSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>modoEntrada(b.dataset.v));
   $("vistaSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>mostraVista(b.dataset.v));
-  $("btn2d").onclick=desenha2d; $("btn3d").onclick=gera3d;
+  $("btn2d").onclick=()=>desenha2d(); $("btn3d").onclick=()=>gera3d();
+  $("btnEdSmi").onclick=()=>{ modoEntrada("ed"); abreEditor($("smi").value.trim()); };
+  $("btnEd2d").onclick=()=>desenha2d(true); $("btnEd3d").onclick=()=>gera3d(true);
+  $("btnEdLimpa").onclick=()=>{ if (editor){ editor.clearAll(); $("edSmi").value=""; } };
+  $("btnEdCopia").onclick=()=>{ const t=$("edSmi").value; if (!t) return;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>status("SMILES copiado."), ()=>{ $("edSmi").select(); status("Selecionei o SMILES: copie com Ctrl+C."); }); };
   $("smi").addEventListener("keydown",e=>{ if (e.key==="Enter"){ e.preventDefault(); desenha2d(); } });
-  $("cor2d").onchange=()=>{ if (mol2d) desenha2d(); };
+  $("cor2d").onchange=()=>{ if (svg2d){ $("v2d").innerHTML=svgFinal(false); } };
   const ss=$("smiSel");
   if (typeof SMILES_EXEMPLO!=="undefined") Object.keys(SMILES_EXEMPLO).forEach(k=>{ const o=document.createElement("option"); o.value=SMILES_EXEMPLO[k]; o.textContent=k; ss.appendChild(o); });
   ss.onchange=()=>{ if (ss.value){ $("smi").value=ss.value; desenha2d(); } };
