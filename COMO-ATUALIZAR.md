@@ -237,11 +237,18 @@ O **visualizador de moléculas** (`visualizador.html`) é uma página do própri
 | `assets/js/visualizador.js` | Motor: leitura do XYZ, desenho, ligações de H, exportação do PNG |
 | `assets/css/visualizador.css` | Aparência (usa as cores de `site.css`) |
 | `dados/moleculas-exemplo.js` | Moléculas do menu "Exemplos" |
+| `assets/js/vendor/openchemlib/` | Biblioteca OpenChemLib (BSD-3): lê SMILES, desenha o 2D e gera o 3D. Só é carregada quando alguém usa a opção SMILES |
 
 Para trocar os exemplos, edite `dados/moleculas-exemplo.js`: nome entre aspas e,
 entre crases, uma linha por átomo (`C  0.000  1.234  -0.567`, em Å). A primeira
-molécula da lista é a que abre com a página. **Não coloque geometrias de trabalhos
+molécula da lista é a que abre com a página. No mesmo arquivo, `SMILES_EXEMPLO` lista os exemplos do modo SMILES
+(nome e código). **Não coloque geometrias de trabalhos
 ainda não publicados**: o site é público.
+
+A opção **SMILES** só funciona com o site publicado (ou servido por um servidor
+local, por exemplo `python3 -m http.server` na pasta do repositório). Abrindo
+`visualizador.html` direto como arquivo, o navegador bloqueia a biblioteca e a
+página avisa isso; o modo XYZ continua funcionando.
 
 ---
 

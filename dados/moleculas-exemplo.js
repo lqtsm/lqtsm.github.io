@@ -85,3 +85,13 @@ H     -2.72860     2.61920     0.04726
 H     -1.26113     3.18359    -0.78010`,
 
 };
+
+/* Exemplos do modo SMILES (nome: codigo SMILES). */
+const SMILES_EXEMPLO = {
+  "Bisfenol A": "CC(C)(c1ccc(O)cc1)c1ccc(O)cc1",
+  "Acrilonitrila": "C=CC#N",
+  "1-Vinilimidazol": "C=Cn1ccnc1",
+  "Cafeína": "Cn1cnc2c1c(=O)n(C)c(=O)n2C",
+  "Paracetamol": "CC(=O)Nc1ccc(O)cc1",
+  "Ácido acetilsalicílico": "CC(=O)Oc1ccccc1C(=O)O",
+};

@@ -1,0 +1,3 @@
+OpenChemLib JS 9.25.0 (https://github.com/cheminfo/openchemlib-js), licença BSD-3-Clause (ver LICENSE).
+Usado pelo visualizador para ler SMILES, desenhar a estrutura 2D e gerar a geometria 3D (MMFF94s+).
+Carregado só quando a pessoa usa a opção SMILES.

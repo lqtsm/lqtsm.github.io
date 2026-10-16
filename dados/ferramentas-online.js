@@ -22,7 +22,8 @@ const FERRAMENTAS_ONLINE = [
     titulo: "Visualizador de moléculas",
     link: "visualizador.html",
     resumo:
-      "Cole coordenadas XYZ (ou a saída do ORCA/Gaussian), meça ligações de hidrogênio " +
-      "e exporte figuras em PNG a 300, 600 ou 900 dpi. Roda no navegador, sem instalar nada.",
+      "Cole coordenadas XYZ (ou a saída do ORCA/Gaussian) ou um SMILES: estrutura 2D no estilo " +
+      "ChemDraw, modelo 3D com estilos mistos, ligações de hidrogênio e figuras em PNG/SVG a " +
+      "300, 600 ou 900 dpi. Roda no navegador, sem instalar nada.",
   },
 ];

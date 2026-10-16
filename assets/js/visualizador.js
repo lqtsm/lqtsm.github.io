@@ -18,6 +18,10 @@ const JMOL = {H:"#FFFFFF",C:"#909090",N:"#3050F8",O:"#FF0D0D",F:"#90E050",S:"#FF
 const $ = id => document.getElementById(id);
 const cv = $("cv"), ctx = cv.getContext("2d");
 let atoms = [], bonds = [], style = "bs", measures = [], picked = [];
+// estilo misto: atomStyle[i] sobrepoe o estilo geral; selecao = atomos marcados
+let atomStyle = [], selecao = new Set(), modoClique = "medir", vista = "3d", svg2d = "", mol2d = null;
+const st = i => atomStyle[i] || style;
+const LARG = { bs: 0.20, stick: 0.32, line: 0.06 };   // largura do bastao (fracao de 1 A na tela)
 let R = [[1,0,0],[0,1,0],[0,0,1]], zoom = 1, pan = {x:0, y:0}, center = {x:0,y:0,z:0}, extent = 5, ex = 5, ey = 5;
 
 function parse(txt){
@@ -110,21 +114,24 @@ function render(g, W, H, opts){
   if (!atoms.length) return;
   const s = Math.min(W/(2*ex), H/(2*ey))*0.92*zoom, cx=W/2+pan.x*k, cy=H/2+pan.y*k;
   const P = atoms.map(proj).map(p=>({x:cx+p.X*s, y:cy-p.Y*s, z:p.Z}));
-  const rad = i => { const el=atoms[i].el;
-    return style==="sphere" ? (VDW[el]||1.7)*s : style==="bs" ? (el==="H"?0.20:0.30)*s : style==="stick" ? 0.16*s : 0; };
-  const bw = style==="stick" ? 0.32*s : style==="bs" ? 0.20*s : Math.max(1.5,0.06*s);
+  const rad = i => { const el=atoms[i].el, y=st(i);
+    return y==="sphere" ? (VDW[el]||1.7)*s : y==="bs" ? (el==="H"?0.20:0.30)*s : y==="stick" ? 0.16*s : 0; };
+  const bwOf = y => y==="line" ? Math.max(1.5,LARG.line*s) : LARG[y]*s;
   const items=[];
-  if (style!=="sphere") bonds.forEach(([i,j])=>{
+  bonds.forEach(([i,j])=>{
     const m={x:(P[i].x+P[j].x)/2, y:(P[i].y+P[j].y)/2};
-    items.push({z:P[i].z-0.001, t:"b", a:P[i], b:m, c:colorOf(atoms[i].el)});
-    items.push({z:P[j].z-0.001, t:"b", a:P[j], b:m, c:colorOf(atoms[j].el)});
+    // cada metade da ligacao segue o estilo do proprio atomo; meia-ligacao de "esferas" nao e desenhada
+    [[i,j],[j,i]].forEach(([u])=>{ const y=st(u); if (y==="sphere") return;
+      const w = (st(i)==="sphere"||st(j)==="sphere") ? bwOf(y) : Math.min(bwOf(st(i)), bwOf(st(j))) ;
+      items.push({z:P[u].z-0.001, t:"b", a:P[u], b:m, c:colorOf(atoms[u].el), w: y==="line" ? bwOf("line") : w}); });
   });
-  if (style!=="line") atoms.forEach((a,i)=>items.push({z:P[i].z, t:"a", p:P[i], r:rad(i), c:colorOf(a.el)}));
+  atoms.forEach((a,i)=>{ if (st(i)!=="line") items.push({z:P[i].z, t:"a", p:P[i], r:rad(i), c:colorOf(a.el)}); });
   items.sort((u,v)=>u.z-v.z);
   const edge = bg==="black" ? "rgba(255,255,255,.35)" : "rgba(0,0,0,.55)", lw=Math.max(0.6, 0.012*s);
   g.lineCap="round";
   for (const it of items){
     if (it.t==="b"){
+      const bw=it.w;
       g.strokeStyle=edge; g.lineWidth=bw+2*lw; g.beginPath(); g.moveTo(it.a.x,it.a.y); g.lineTo(it.b.x,it.b.y); g.stroke();
       g.strokeStyle=shade(it.c,-0.12); g.lineWidth=bw; g.stroke();
       if (bw>4){ g.strokeStyle=shade(it.c,0.35); g.lineWidth=bw*0.35; g.stroke(); }
@@ -158,6 +165,8 @@ function render(g, W, H, opts){
   });
   if ($("showIdx").checked) atoms.forEach((a,i)=>label(a.el+(i+1),P[i].x,P[i].y, bg==="black"?"#fff":"#1b2230",Math.max(9,0.20*s)));
   picked.forEach(i=>{ g.strokeStyle="#14456b"; g.lineWidth=2*k; g.beginPath(); g.arc(P[i].x,P[i].y,Math.max(rad(i),6)+4*k,0,2*Math.PI); g.stroke(); });
+  if (opts.tela) selecao.forEach(i=>{ g.save(); g.strokeStyle="#2e7fb8"; g.lineWidth=2*k; g.setLineDash([4*k,3*k]);
+    g.beginPath(); g.arc(P[i].x,P[i].y,Math.max(rad(i),5*k)+3*k,0,2*Math.PI); g.stroke(); g.restore(); });
   P.s=s; P.rad=rad; return P;
 }
 
@@ -167,7 +176,7 @@ function draw(){
   cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.width=W+"px"; cv.style.height=H+"px";
   const bg=$("bgSel").value==="black"?"black":"white";
   box.style.background = bg==="black" ? "#000" : "#fff";
-  const P=render(ctx, cv.width, cv.height, {bg, k:dpr, hbc:"#ed7a2c"});
+  const P=render(ctx, cv.width, cv.height, {bg, k:dpr, hbc:"#ed7a2c", tela:true});
   lastP=(P||[]).map(p=>({x:p.x/dpr,y:p.y/dpr}));
   table($("showHB").checked && atoms.length ? hbonds() : []);
 }
@@ -183,14 +192,16 @@ function status(msg){
   if (msg){ $("status").textContent=msg; return; }
   const n={}; atoms.forEach(a=>n[a.el]=(n[a.el]||0)+1);
   const f=Object.keys(n).sort((a,b)=>(a==="C"?-1:b==="C"?1:a==="H"?-1:b==="H"?1:a.localeCompare(b))).map(e=>e+(n[e]>1?n[e]:"")).join("");
-  $("status").innerHTML = atoms.length ? `<b>${atoms.length} átomos</b> · ${f} · arraste para girar, Shift+arraste para mover, role para zoom, clique em dois átomos para medir${measures.length?` · <a href="#" id="clrM">limpar medidas</a>`:""}` : "Nenhum átomo reconhecido no texto.";
+  const acao = modoClique==="medir" ? "clique em dois átomos para medir" : "clique marca ou desmarca um átomo, duplo clique marca a molécula inteira";
+  const nsel = selecao.size ? ` · <b>${selecao.size} selecionado${selecao.size>1?"s":""}</b>` : "";
+  $("status").innerHTML = atoms.length ? `<b>${atoms.length} átomos</b> · ${f}${nsel} · arraste para girar, Shift+arraste para mover, role para zoom, ${acao}${measures.length?` · <a href="#" id="clrM">limpar medidas</a>`:""}` : "Nenhum átomo reconhecido no texto.";
   const c=$("clrM"); if (c) c.onclick=e=>{ e.preventDefault(); measures=[]; draw(); status(); };
 }
 
 function load(){
   atoms=parse($("xyz").value); bonds=[];
   for (let i=0;i<atoms.length;i++) for (let j=i+1;j<atoms.length;j++) if (isBond(atoms[i],atoms[j])) bonds.push([i,j]);
-  measures=[]; picked=[];
+  measures=[]; picked=[]; atomStyle=[]; selecao=new Set(); mostraVista("3d");
   if (atoms.length) orient();
   draw(); status();
 }
@@ -222,12 +233,14 @@ function exporta(){
   picked=sel;
   return {fin, dpi, cm};
 }
-function png(){
-  const {fin, dpi, cm}=exporta();
+async function png(){
+  if (vista==="2d" && !svg2d){ status("Desenhe a estrutura 2D antes de exportar."); return; }
+  const {fin, dpi, cm} = vista==="2d" ? await exporta2d() : exporta();
   const blobP=new Promise(res=>fin.toBlob(b=>comDpi(b,dpi).then(res)));
   const info=`PNG ${fin.width} × ${fin.height} px · ${String(cm).replace(".",",")} × ${(fin.height/dpi*2.54).toFixed(1).replace(".",",")} cm a ${dpi} dpi`;
-  $("out").innerHTML=`<span class="lab">${info}</span><img id="pngImg" alt="Imagem exportada da molécula"><div class="row"><a class="botao" id="btnDown" download="molecula_${dpi}dpi.png">Baixar PNG</a><button class="botao botao--secundario" type="button" id="btnCopy">Copiar de novo</button></div><span class="hint" id="copyMsg">Copiando para a área de transferência…</span>`;
+  $("out").innerHTML=`<span class="lab">${info}</span><img id="pngImg" alt="Imagem exportada da molécula"><div class="row"><a class="botao" id="btnDown" download="molecula_${vista}_${dpi}dpi.png">Baixar PNG</a>${vista==="2d"?'<a class="botao botao--secundario" id="btnSvg" download="estrutura_2d.svg">Baixar SVG</a>':""}<button class="botao botao--secundario" type="button" id="btnCopy">Copiar de novo</button></div><span class="hint" id="copyMsg">Copiando para a área de transferência…</span>`;
   blobP.then(b=>{ const u=URL.createObjectURL(b); $("pngImg").src=u; $("btnDown").href=u; });
+  if (vista==="2d") $("btnSvg").href=URL.createObjectURL(new Blob([svgFinal(true)],{type:"image/svg+xml"}));
   const copia=()=>{
     try {
       navigator.clipboard.write([new ClipboardItem({"image/png":blobP})])
@@ -252,13 +265,111 @@ cv.addEventListener("pointerup",e=>{
   if (drag && drag.moved<4 && atoms.length){
     const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
     let best=-1,bd=14; lastP.forEach((p,i)=>{ const d=Math.hypot(p.x-x,p.y-y); if(d<bd){bd=d;best=i;} });
+    if (best>=0 && modoClique==="selecionar"){
+      if (selecao.has(best)) selecao.delete(best); else selecao.add(best);
+      draw(); status(); drag=null; return;
+    }
     if (best>=0){ picked.push(best);
       if (picked.length===2){ if (picked[0]!==picked[1]) measures.push(picked.slice()); picked=[]; draw(); status(); }
       else { draw(); status(`Átomo ${atoms[best].el}${best+1} selecionado: clique em outro para medir a distância.`); } }
   }
   drag=null;
 });
+cv.addEventListener("dblclick",e=>{
+  if (modoClique!=="selecionar" || !atoms.length) return;
+  const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  let best=-1,bd=14; lastP.forEach((p,i)=>{ const d=Math.hypot(p.x-x,p.y-y); if(d<bd){bd=d;best=i;} });
+  if (best<0) return;
+  // molecula inteira = componente conexa do grafo de ligacoes
+  const viz=atoms.map(()=>[]); bonds.forEach(([i,j])=>{ viz[i].push(j); viz[j].push(i); });
+  const pilha=[best], vis=new Set([best]);
+  while (pilha.length){ const a=pilha.pop(); viz[a].forEach(b=>{ if(!vis.has(b)){ vis.add(b); pilha.push(b); } }); }
+  vis.forEach(i=>selecao.add(i)); draw(); status();
+});
 cv.addEventListener("wheel",e=>{ e.preventDefault(); zoom*=Math.exp(-e.deltaY*0.0015); zoom=Math.max(0.2,Math.min(8,zoom)); draw(); },{passive:false});
+
+// "1-33, 40, 45-47" -> indices 0-based
+function intervalo(txt){
+  const out=[];
+  txt.split(/[,;\s]+/).forEach(p=>{ const m=p.match(/^(\d+)(?:-(\d+))?$/); if(!m) return;
+    const a=+m[1], b=m[2]?+m[2]:a; for(let i=Math.min(a,b);i<=Math.max(a,b);i++) out.push(i-1); });
+  return out;
+}
+
+/* --- SMILES: OpenChemLib, carregado sob demanda ------------------------- */
+let OCLp=null, recursosOk=false;
+const urlVendor = f => new URL("assets/js/vendor/openchemlib/"+f, document.baseURI).href;
+function ocl(){
+  if (!OCLp) OCLp = import(urlVendor("openchemlib.js")).catch(e=>{ OCLp=null; throw e; });
+  return OCLp;
+}
+function avisoOcl(e){
+  status(location.protocol==="file:" ? "A opção SMILES precisa do site publicado (ou de um servidor local); aberto como arquivo, o navegador bloqueia a biblioteca."
+    : "Não foi possível carregar a biblioteca de SMILES: "+(e && e.message || e));
+}
+function modoEntrada(m){
+  $("inSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.v===m));
+  $("blocoXyz").hidden = m!=="xyz"; $("blocoSmi").hidden = m!=="smi";
+}
+function mostraVista(v){
+  vista=v;
+  $("vistaSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.v===v));
+  $("cv").hidden = v!=="3d"; $("v2d").hidden = v!=="2d";
+  $("vistaSeg").hidden = !svg2d;
+  document.querySelectorAll("[data-so3d]").forEach(el=>el.hidden = v!=="3d");
+  document.querySelectorAll("[data-so2d]").forEach(el=>el.hidden = v!=="2d");
+  $("out").innerHTML="";
+  if (v==="3d") draw(); else { $("hbTable").innerHTML=""; }
+}
+// estilo ACS 1996 (ChemDraw): ligacao 14,4 pt, traco 0,6 pt, Arial 10 pt.
+// O OpenChemLib desenha a ligacao com 24 px -> 1 px = 0,6 pt.
+function svgFinal(paraArquivo){
+  let t=svg2d.replace(/font-family:\s*sans-serif/,'font-family: Arial, Helvetica, sans-serif');
+  if (!$("cor2d").checked) t=t.replace(/(<text[^>]*?)fill="rgb\([^)]*\)"/g,'$1fill="rgb(0,0,0)"');
+  if (paraArquivo){
+    const m=t.match(/width="([\d.]+)px" height="([\d.]+)px"/);
+    if (m) t=t.replace(m[0], `width="${(+m[1]*0.6).toFixed(1)}pt" height="${(+m[2]*0.6).toFixed(1)}pt"`);
+    t=t.replace(/<line id="[^"]*" class="event"[^>]*\/>\s*/g,"").replace(/<circle id="[^"]*" class="event"[^>]*\/>\s*/g,"");
+  }
+  return t;
+}
+async function desenha2d(){
+  const smi=$("smi").value.trim(); if (!smi){ status("Digite um código SMILES."); return; }
+  let O; try { O=await ocl(); } catch(e){ avisoOcl(e); return; }
+  let m; try { m=O.Molecule.fromSmiles(smi); } catch(e){ status("SMILES inválido: "+(e.message||e)); return; }
+  mol2d=m;
+  svg2d=m.toSVG(600,400,"estrutura2d",{autoCrop:true, autoCropMargin:12, strokeWidth:1, factorTextSize:1.19, suppressChiralText:true});
+  $("v2d").innerHTML=svgFinal(false);
+  mostraVista("2d");
+  const f=m.getMolecularFormula();
+  status(`Estrutura 2D · ${f.formula} · ${f.relativeWeight.toFixed(2).replace(".",$("decSel").value)} g/mol · estilo ACS (ChemDraw). Use "Gerar 3D" para a geometria.`);
+}
+async function gera3d(){
+  const smi=$("smi").value.trim(); if (!smi){ status("Digite um código SMILES."); return; }
+  status("Gerando a geometria 3D…");
+  let O; try { O=await ocl(); if (!recursosOk){ await O.Resources.registerFromUrl(urlVendor("resources.json")); recursosOk=true; } } catch(e){ avisoOcl(e); return; }
+  try {
+    const m=O.Molecule.fromSmiles(smi), g=new O.ConformerGenerator(42), c=g.getOneConformerAsMolecule(m);
+    if (!c) throw new Error("o gerador de confôrmeros não encontrou geometria sem colisões");
+    const ff=new O.ForceFieldMMFF94(c,"MMFF94s+"); ff.minimise();
+    const n=c.getAllAtoms(), L=[];
+    for (let i=0;i<n;i++) L.push(`${c.getAtomLabel(i).padEnd(2)} ${c.getAtomX(i).toFixed(5).padStart(11)} ${c.getAtomY(i).toFixed(5).padStart(11)} ${c.getAtomZ(i).toFixed(5).padStart(11)}`);
+    $("xyz").value=`${n}\n${smi} - geometria MMFF94s+ (OpenChemLib), ilustrativa\n`+L.join("\n");
+    modoEntrada("xyz"); load();
+    status(`Geometria 3D de ${smi}: confôrmero gerado pelo OpenChemLib e otimizado com MMFF94s+. É ilustrativa, não substitui um cálculo.`);
+  } catch(e){ status("Não foi possível gerar a geometria 3D: "+(e.message||e)); }
+}
+async function exporta2d(){
+  const dpi=+$("dpiSel").value, cm=+$("wSel").value, T=Math.round(cm/2.54*dpi), t=svgFinal(true);
+  const img=new Image(), u=URL.createObjectURL(new Blob([t],{type:"image/svg+xml"}));
+  await new Promise((ok,er)=>{ img.onload=ok; img.onerror=er; img.src=u; });
+  const r=img.naturalHeight/img.naturalWidth, fin=document.createElement("canvas");
+  fin.width=T; fin.height=Math.round(T*r);
+  const g=fin.getContext("2d"), bg=$("bgSel").value;
+  if (bg!=="transparent"){ g.fillStyle = bg==="black" ? "#000" : "#fff"; g.fillRect(0,0,fin.width,fin.height); }
+  g.drawImage(img,0,0,fin.width,fin.height); URL.revokeObjectURL(u);
+  return {fin, dpi, cm};
+}
 
 function init(){
   const sel=$("exSel");
@@ -272,6 +383,26 @@ function init(){
   $("hbCut").oninput=()=>{ $("hbCutV").textContent=(+$("hbCut").value).toFixed(2)+" Å"; draw(); };
   $("hbAng").oninput=()=>{ $("hbAngV").textContent=$("hbAng").value+"°"; draw(); };
   $("btnPng").onclick=png;
+  // estilo misto
+  $("clickSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    modoClique=b.dataset.v; picked=[]; $("clickSeg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b)); draw(); status(); });
+  $("selSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    if (!selecao.size){ status("Nenhum átomo selecionado. Escolha \"Clique seleciona\" e marque os átomos, ou digite os números."); return; }
+    selecao.forEach(i=>atomStyle[i]=b.dataset.v); draw(); });
+  $("btnSelTxt").onclick=()=>{ intervalo($("selTxt").value).forEach(i=>{ if(i>=0&&i<atoms.length) selecao.add(i); }); draw(); status(); };
+  $("selTxt").addEventListener("keydown",e=>{ if (e.key==="Enter"){ e.preventDefault(); $("btnSelTxt").click(); } });
+  $("btnSelInv").onclick=()=>{ const n=new Set(); atoms.forEach((a,i)=>{ if(!selecao.has(i)) n.add(i); }); selecao=n; draw(); status(); };
+  $("btnSelClr").onclick=()=>{ selecao=new Set(); draw(); status(); };
+  $("btnSelUni").onclick=()=>{ atomStyle=[]; draw(); };
+  // SMILES
+  $("inSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>modoEntrada(b.dataset.v));
+  $("vistaSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>mostraVista(b.dataset.v));
+  $("btn2d").onclick=desenha2d; $("btn3d").onclick=gera3d;
+  $("smi").addEventListener("keydown",e=>{ if (e.key==="Enter"){ e.preventDefault(); desenha2d(); } });
+  $("cor2d").onchange=()=>{ if (mol2d) desenha2d(); };
+  const ss=$("smiSel");
+  if (typeof SMILES_EXEMPLO!=="undefined") Object.keys(SMILES_EXEMPLO).forEach(k=>{ const o=document.createElement("option"); o.value=SMILES_EXEMPLO[k]; o.textContent=k; ss.appendChild(o); });
+  ss.onchange=()=>{ if (ss.value){ $("smi").value=ss.value; desenha2d(); } };
   $("btnReset").onclick=()=>{ if (atoms.length) orient(); draw(); };
   $("xyz").addEventListener("keydown",e=>{ if ((e.ctrlKey||e.metaKey) && e.key==="Enter") load(); });
   new ResizeObserver(()=>draw()).observe($("viewer"));

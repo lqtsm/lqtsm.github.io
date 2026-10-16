@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visualizador de moléculas | LQTSM — UERJ</title>
   <meta name="description"
-    content="Visualizador de moléculas do LQTSM: cole coordenadas XYZ, veja a estrutura em 3D, meça ligações de hidrogênio e exporte figuras em PNG com resolução de publicação.">
+    content="Visualizador de moléculas do LQTSM: cole coordenadas XYZ ou um SMILES, veja a estrutura em 2D e 3D, meça ligações de hidrogênio e exporte figuras em PNG com resolução de publicação.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
       <div class="container faixa__interno">
         <p class="vis-trilha"><a href="materiais.html#ferramentas">Materiais › Ferramentas</a></p>
         <h1>Visualizador de moléculas</h1>
-        <p>Cole as coordenadas de uma molécula ou de um complexo, gire a estrutura, meça distâncias e
+        <p>Cole as coordenadas de uma molécula ou de um complexo, ou digite um SMILES, gire a estrutura, meça distâncias e
           ligações de hidrogênio e exporte a figura em PNG com resolução de publicação. Tudo roda no
           seu navegador: as coordenadas não são enviadas a nenhum servidor.</p>
       </div>
@@ -41,18 +41,40 @@
 
         <div class="vis-painel">
           <div class="vis-bloco">
-            <label class="vis-rotulo" for="xyz">Coordenadas (Å)</label>
-            <textarea id="xyz" spellcheck="false"></textarea>
-            <div class="vis-linha">
-              <button class="botao" type="button" id="btnLoad">Desenhar</button>
-              <select id="exSel" aria-label="Exemplos"><option value="">Exemplos…</option></select>
+            <span class="vis-rotulo">Entrada</span>
+            <div class="vis-seg vis-seg--2" id="inSeg" role="group" aria-label="Tipo de entrada">
+              <button type="button" data-v="xyz" aria-pressed="true">XYZ</button>
+              <button type="button" data-v="smi" aria-pressed="false">SMILES</button>
             </div>
-            <p class="vis-dica">Aceita arquivo .xyz, o bloco CARTESIAN COORDINATES do ORCA ou o Standard
-              orientation do Gaussian. Linhas que não são átomos são ignoradas. Ctrl+Enter também desenha.</p>
+
+            <div class="vis-bloco" id="blocoXyz">
+              <label class="vis-rotulo" for="xyz">Coordenadas (Å)</label>
+              <textarea id="xyz" spellcheck="false"></textarea>
+              <div class="vis-linha">
+                <button class="botao" type="button" id="btnLoad">Desenhar</button>
+                <select id="exSel" aria-label="Exemplos"><option value="">Exemplos…</option></select>
+              </div>
+              <p class="vis-dica">Aceita arquivo .xyz, o bloco CARTESIAN COORDINATES do ORCA ou o Standard
+                orientation do Gaussian. Linhas que não são átomos são ignoradas. Ctrl+Enter também desenha.</p>
+            </div>
+
+            <div class="vis-bloco" id="blocoSmi" hidden>
+              <label class="vis-rotulo" for="smi">Código SMILES</label>
+              <input type="text" id="smi" spellcheck="false" autocomplete="off" placeholder="ex.: CC(C)(c1ccc(O)cc1)c1ccc(O)cc1">
+              <div class="vis-linha">
+                <button class="botao" type="button" id="btn2d">Desenhar 2D</button>
+                <button class="botao botao--secundario" type="button" id="btn3d">Gerar 3D</button>
+              </div>
+              <select id="smiSel" aria-label="Exemplos de SMILES"><option value="">Exemplos…</option></select>
+              <label class="vis-chk"><input type="checkbox" id="cor2d"> heteroátomos coloridos no 2D</label>
+              <p class="vis-dica">"Desenhar 2D" faz a fórmula estrutural no estilo ACS (o padrão do ChemDraw).
+                "Gerar 3D" cria uma geometria com o campo de força MMFF94s+, boa para ilustrar, não para publicar
+                como resultado de cálculo.</p>
+            </div>
           </div>
 
-          <div class="vis-bloco">
-            <span class="vis-rotulo">Estilo</span>
+          <div class="vis-bloco" data-so3d>
+            <span class="vis-rotulo">Estilo geral</span>
             <div class="vis-seg" id="styleSeg" role="group" aria-label="Estilo">
               <button type="button" data-v="bs" aria-pressed="true">Bola e bastão</button>
               <button type="button" data-v="stick" aria-pressed="false">Bastão</button>
@@ -65,7 +87,31 @@
             </div>
           </div>
 
-          <div class="vis-bloco">
+          <div class="vis-bloco" data-so3d>
+            <span class="vis-rotulo">Seleção e estilo misto</span>
+            <div class="vis-seg vis-seg--2" id="clickSeg" role="group" aria-label="O que o clique faz">
+              <button type="button" data-v="medir" aria-pressed="true">Clique mede</button>
+              <button type="button" data-v="selecionar" aria-pressed="false">Clique seleciona</button>
+            </div>
+            <div class="vis-linha">
+              <input type="text" id="selTxt" class="vis-curto" placeholder="átomos: 1-33, 40" aria-label="Átomos para selecionar">
+              <button class="botao botao--secundario" type="button" id="btnSelTxt">Selecionar</button>
+            </div>
+            <span class="vis-dica">Aplicar à seleção:</span>
+            <div class="vis-seg" id="selSeg" role="group" aria-label="Estilo da seleção">
+              <button type="button" data-v="bs">Bola e bastão</button>
+              <button type="button" data-v="stick">Bastão</button>
+              <button type="button" data-v="sphere">Esferas</button>
+              <button type="button" data-v="line">Linha</button>
+            </div>
+            <div class="vis-linha vis-links">
+              <button type="button" id="btnSelInv">Inverter seleção</button>
+              <button type="button" id="btnSelClr">Limpar seleção</button>
+              <button type="button" id="btnSelUni">Voltar ao estilo único</button>
+            </div>
+          </div>
+
+          <div class="vis-bloco" data-so3d>
             <span class="vis-rotulo">Ligações de hidrogênio</span>
             <label class="vis-chk"><input type="checkbox" id="showHB" checked>
               <span><span class="vis-tracejado" aria-hidden="true"></span>mostrar D-H···A (D, A = N, O, F)</span></label>
@@ -83,8 +129,8 @@
                 <option value="transparent">transparente</option>
                 <option value="black">preto</option>
               </select>
-              <label for="decSel">Decimal</label>
-              <select id="decSel">
+              <label for="decSel" data-so3d>Decimal</label>
+              <select id="decSel" data-so3d>
                 <option value=".">ponto (inglês)</option>
                 <option value=",">vírgula (português)</option>
               </select>
@@ -102,7 +148,7 @@
                 <option value="5">5 cm (painel pequeno)</option>
               </select>
             </div>
-            <label class="vis-chk"><input type="checkbox" id="cropC" checked> recortar margens em branco</label>
+            <label class="vis-chk" data-so3d><input type="checkbox" id="cropC" checked> recortar margens em branco</label>
             <div class="vis-linha">
               <button class="botao" type="button" id="btnPng">Gerar PNG</button>
               <button class="botao botao--secundario" type="button" id="btnReset">Recentrar</button>
@@ -111,7 +157,11 @@
         </div>
 
         <div class="vis-palco">
-          <div id="viewer"><canvas id="cv" aria-label="Janela 3D da molécula"></canvas></div>
+          <div class="vis-seg vis-seg--2 vis-vista" id="vistaSeg" role="group" aria-label="Vista" hidden>
+            <button type="button" data-v="3d" aria-pressed="true">3D</button>
+            <button type="button" data-v="2d" aria-pressed="false">Estrutura 2D</button>
+          </div>
+          <div id="viewer"><canvas id="cv" aria-label="Janela 3D da molécula"></canvas><div id="v2d" hidden></div></div>
           <p class="vis-status" id="status"></p>
           <div class="vis-tabela" id="hbTable"></div>
           <div class="vis-saida" id="out"></div>

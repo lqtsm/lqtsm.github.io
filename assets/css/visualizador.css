@@ -171,6 +171,58 @@
   font-weight: 600;
 }
 
+.vis-seg--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.vis-seg--2 button:nth-child(-n + 2) {
+  border-bottom: 0;
+}
+.vis input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  font: 0.9rem/1.4 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color: var(--tinta);
+  background: var(--fundo);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pequeno);
+}
+.vis-linha .vis-curto {
+  flex: 1;
+  width: auto;
+}
+.vis-links button {
+  padding: 0;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--azul);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.vis-vista {
+  align-self: flex-start;
+  min-width: 260px;
+}
+#v2d {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #fff;
+}
+#v2d[hidden] {
+  display: none;
+}
+#v2d svg {
+  width: min(100%, 560px);
+  height: auto;
+  max-height: 100%;
+}
+
 /* Janela da molecula e resultados */
 .vis-palco {
   display: flex;
@@ -242,4 +294,10 @@
   .vis * {
     transition: none !important;
   }
+}
+
+/* O atributo hidden precisa vencer os display: flex/block acima */
+.vis [hidden],
+.vis-palco [hidden] {
+  display: none !important;
 }
