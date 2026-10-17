@@ -507,6 +507,7 @@
        ===================================================================== */
     const TAMANHO_HISTORICO = 20;                 // equacoes guardadas
     const ESCALA_PNG = 4;                          // PNG com 4x a resolucao do SVG
+    const MARGEM_PX = 4;                           // margem em volta da equacao no SVG (x4 no PNG)
     const CHAVE_HISTORICO = "lqtsm-editor-equacoes-historico-v1";
     const PX_POR_EX = 10;                          // 1 ex do MathJax = 10 px (fonte de 20 px)
     const COR_EXPORTACAO = "#000000";              // cor da equacao no SVG e no PNG
@@ -728,6 +729,32 @@
     ];
 
     /* ---------------------------------------------------------------------
+       REDONDO ISOLADO
+       ---------------------------------------------------------------------
+       O MathLive faz o que se digita herdar o estilo do caractere anterior:
+       depois de \mathrm{d}, um x digitado sairia redondo (\mathrm{dx}).
+       Envolver em chaves, {\mathrm{d}}, fecha o estilo: d redondo, x italico.
+       As chaves extras sao removidas do LaTeX mostrado e exportado
+       (limparLatexDoCampo). Nao mexe em indices/expoentes (_{\mathrm{r}}).
+       --------------------------------------------------------------------- */
+    function isolarRedondoNoLatex(latex) {
+      return latex
+        .replace(/\\mathrm\{([^{}]*)\}/g, "{\\mathrm{$1}}")
+        .replace(/([_^])\{\{(\\mathrm\{[^{}]*\})\}\}/g, "$1{$2}");   // _{\mathrm{r}} fica como esta
+    }
+    function isolarRedondo(abas) {
+      const visitar = (k) => {
+        if (typeof k === "string") return k;
+        const n = { ...k };
+        if (n.latex) n.latex = isolarRedondoNoLatex(n.latex);
+        if (n.shift) n.shift = visitar(n.shift);
+        if (Array.isArray(n.variants)) n.variants = n.variants.map(visitar);
+        return n;
+      };
+      return abas.map((aba) => (typeof aba === "string" ? aba : { ...aba, rows: aba.rows.map((l) => l.map(visitar)) }));
+    }
+
+    /* ---------------------------------------------------------------------
        SELECAO -> ARGUMENTO
        ---------------------------------------------------------------------
        O MathLive avisa (evento beforeinput, cancelavel) o LaTeX que uma tecla
@@ -746,7 +773,10 @@
     (function mapearModos() {
       const visitar = (k) => {
         if (!k || typeof k !== "object") return;
-        if (k.arg && k.latex) MODO_DA_TECLA.set(k.latex, k.arg);
+        if (k.arg && k.latex) {
+          MODO_DA_TECLA.set(k.latex, k.arg);
+          MODO_DA_TECLA.set(isolarRedondoNoLatex(k.latex), k.arg);   // forma que o teclado envia
+        }
         if (k.shift) visitar(k.shift);
         if (Array.isArray(k.variants)) k.variants.forEach(visitar);
       };
@@ -797,7 +827,7 @@
     function configurarTeclado() {
       const teclado = window.mathVirtualKeyboard;
       if (!teclado) return;
-      teclado.layouts = ABAS_TECLADO;
+      teclado.layouts = isolarRedondo(ABAS_TECLADO);
       teclado.editToolbar = "default";              // desfazer, refazer, recortar, copiar, colar
 
       const botao = $("btn-teclado");
@@ -962,7 +992,9 @@
 
     // O MathLive escreve \operatorname{\mathrm{sen}}; volta para \operatorname{sen}
     function limparLatexDoCampo(latex) {
-      return latex.replace(/\\operatorname\{\\mathrm\{([^{}]*)\}\}/g, "\\operatorname{$1}");
+      return latex
+        .replace(/\\operatorname\{\\mathrm\{([^{}]*)\}\}/g, "\\operatorname{$1}")
+        .replace(/(^|[^_^])\{(\\mathrm\{[^{}]*\})\}/g, "$1$2");   // {\mathrm{d}} -> \mathrm{d} (mantem _{\mathrm{r}})
     }
 
     // Caixinhas vazias do MathLive (\placeholder{}) nao existem no LaTeX
@@ -1093,8 +1125,17 @@
         throw new Error("TeX: " + msg);
       }
       // ex -> px, para o Inkscape e o navegador medirem igual
-      const largura = parseFloat(svg.getAttribute("width")) * PX_POR_EX;
-      const altura = parseFloat(svg.getAttribute("height")) * PX_POR_EX;
+      let largura = parseFloat(svg.getAttribute("width")) * PX_POR_EX;
+      let altura = parseFloat(svg.getAttribute("height")) * PX_POR_EX;
+      // Margem: alarga o viewBox na mesma proporcao, para a equacao nao
+      // encostar na borda do arquivo
+      const vb = (svg.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number);
+      if (vb.length === 4 && largura > 0) {
+        const m = MARGEM_PX * (vb[2] / largura);   // margem em unidades do viewBox
+        svg.setAttribute("viewBox", [vb[0] - m, vb[1] - m, vb[2] + 2 * m, vb[3] + 2 * m].map((v) => v.toFixed(1)).join(" "));
+        largura += 2 * MARGEM_PX;
+        altura += 2 * MARGEM_PX;
+      }
       svg.setAttribute("width", largura.toFixed(2) + "px");
       svg.setAttribute("height", altura.toFixed(2) + "px");
       svg.removeAttribute("style");
