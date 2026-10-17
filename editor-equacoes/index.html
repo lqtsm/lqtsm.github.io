@@ -95,6 +95,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }   /* vence os display: flex/grid abaixo */
 
     html { -webkit-text-size-adjust: 100%; }
 
@@ -190,14 +191,7 @@
       color: var(--texto-suave);
     }
 
-    .sob-campo {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem 1rem;
-      margin-top: 0.6rem;
-    }
-    .sob-campo .dica { margin: 0; flex: 1 1 280px; }
+    .rapidas-linha .dica { margin: 0; flex: 1 1 280px; }
     #btn-teclado[aria-pressed="true"] {
       color: var(--acento-texto);
       background: var(--acento);
@@ -217,7 +211,10 @@
       display: flex;
       flex-direction: column;
       gap: 0.45rem;
-      margin-top: 0.6rem;
+      margin-top: 0.25rem;
+      padding: 0.6rem 0;
+      border-top: 1px solid var(--linha);
+      border-bottom: 1px solid var(--linha);
     }
     .rapidas-linha {
       display: flex;
@@ -247,8 +244,6 @@
       background: var(--fundo-campo);
     }
     .recentes button .ML__latex { font-size: 1.05rem; }
-    .recentes button .ML__placeholder,
-    .recentes button .ML__placeholder * { color: var(--acento); }
     .cores button {
       width: 1.6rem;
       height: 1.6rem;
@@ -268,9 +263,9 @@
     }
 
     /* Demonstracao */
-    .demo {
-      margin-top: 2rem;
-      padding-top: 0.75rem;
+    .demo { margin-top: 1.25rem; }
+    .demo-toda {
+      padding-top: 1rem;
       border-top: 1px solid var(--linha);
     }
     .demo-topo h2 {
@@ -302,10 +297,12 @@
       text-align: right;
     }
     .passo math-field {
-      min-height: 3rem;
-      padding: 0.4rem 0.7rem;
-      font-size: 1.5rem;
+      min-height: 3.6rem;
+      padding: 0.5rem 0.8rem;
+      font-size: 1.75rem;
     }
+    .passo.ativo math-field { border-color: var(--acento); }
+    .passo.ativo .passo-n { color: var(--acento); font-weight: 600; }
     .passo math-field::part(menu-toggle) { display: none; }
     .passo-eq { min-width: 0; overflow-x: clip; overflow-clip-margin: 4px; }
     .passo-coment {
@@ -431,7 +428,7 @@
     .separador { flex: 1 1 auto; }
     .acoes + .acoes { margin-top: 0.5rem; }
     .grupo {
-      min-width: 4.2rem;
+      min-width: 6.5rem;
       font-size: 0.75rem;
       font-weight: 600;
       letter-spacing: 0.06em;
@@ -582,17 +579,12 @@
 
     <p class="trilha"><a href="../materiais.html#ferramentas">LQTSM · Materiais › Ferramentas</a></p>
     <h1>Editor de equações</h1>
-    <p class="intro">Digite a equação no campo abaixo e veja o LaTeX ao lado. <kbd>/</kbd> cria fração,
-      <kbd>^</kbd> e <kbd>_</kbd> criam expoente e índice, <kbd>\</kbd> abre um comando LaTeX e as setas
-      andam pela estrutura. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copia o LaTeX.</p>
+    <p class="intro">Cada linha é um passo da demonstração: a equação à esquerda, a justificativa à direita.
+      <kbd>/</kbd> cria fração, <kbd>^</kbd> e <kbd>_</kbd> criam expoente e índice, <kbd>\</kbd> abre um comando
+      LaTeX, <kbd>Enter</kbd> abre um passo novo abaixo e <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copia o LaTeX do passo.
+      Para uma equação só, use um passo só.</p>
 
-    <!-- CAMPO VISUAL -->
-    <span class="rotulo" id="rotulo-campo">Equação</span>
-    <!-- O <math-field> e criado pelo script depois de apontar as fontes do
-         MathLive para o CDN (ver iniciarCampo). -->
-    <div id="lugar-campo" class="lugar-campo"></div>
-
-    <!-- FERRAMENTAS RAPIDAS: recentes e cor (agem no campo que tiver o foco) -->
+    <!-- FERRAMENTAS RAPIDAS: recentes, cor e teclado (agem no passo em foco) -->
     <div class="rapidas" id="rapidas" hidden>
       <div class="rapidas-linha" id="linha-recentes" hidden>
         <span class="rotulo-inline">Recentes</span>
@@ -602,42 +594,94 @@
         <span class="rotulo-inline">Cor da seleção</span>
         <div class="cores" id="cores" role="group" aria-label="Cor do trecho selecionado"></div>
       </div>
-    </div>
-    <div class="sob-campo">
-      <button type="button" id="btn-teclado" aria-pressed="false" aria-controls="lugar-campo" hidden>
-        <span aria-hidden="true">⌨</span> Teclado de símbolos</button>
-      <span class="dica">Abas: básico, funções, cálculo, grego, físico-química, quântica, relações e setas,
-        matrizes e texto. <strong>Selecione um trecho e escolha a ferramenta</strong>: a seleção vira o argumento
-        (integrando, radicando, numerador…). Segure uma tecla para ver variantes; <kbd>⇧</kbd> troca minúsculas e maiúsculas.</span>
+      <div class="rapidas-linha">
+        <span class="rotulo-inline">Teclado</span>
+        <button type="button" id="btn-teclado" aria-pressed="false" hidden>
+          <span aria-hidden="true">⌨</span> Teclado de símbolos</button>
+        <span class="dica">Abas: básico, funções, cálculo, grego, físico-química, quântica, relações, matrizes e
+          texto. <strong>Selecione um trecho e escolha a ferramenta</strong>: a seleção vira o argumento
+          (integrando, radicando, numerador…).</span>
+      </div>
     </div>
 
-    <!-- LaTeX -->
-    <div class="bloco">
-      <label class="rotulo" for="latex">LaTeX</label>
+    <!-- PASSOS -->
+    <section class="demo" aria-labelledby="titulo-demo">
+      <h2 class="rotulo" id="titulo-demo">Passos</h2>
+      <!-- Os <math-field> dos passos sao criados pelo script, depois de apontar
+           as fontes do MathLive para o CDN (ver iniciarCampo). -->
+      <ol class="passos" id="passos"></ol>
+      <p class="aviso-campo" id="aviso-mathlive" hidden></p>
+
+      <div class="acoes">
+        <button type="button" class="principal" id="btn-passo-vazio">Novo passo</button>
+        <button type="button" id="btn-passo-importar" aria-expanded="false" aria-controls="importar">Importar de LaTeX…</button>
+        <span class="separador"></span>
+        <button type="button" class="discreto" id="btn-demo-limpar">Limpar tudo</button>
+      </div>
+
+      <div class="importar" id="importar" hidden>
+        <label class="rotulo" for="importar-texto">Cole um ambiente align (ou linhas separadas por \\)</label>
+        <textarea id="importar-texto" spellcheck="false" rows="4"
+          placeholder="\begin{align}&#10;  x &= y && \text{hipótese} \\&#10;  2x &= 2y && \text{multiplicando por 2}&#10;\end{align}"></textarea>
+        <div class="acoes">
+          <button type="button" id="btn-importar-ok">Acrescentar como passos</button>
+          <button type="button" class="discreto" id="btn-importar-fechar">Fechar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PASSO EM FOCO: LaTeX e exportacao de um passo -->
+    <section class="bloco" aria-labelledby="titulo-passo">
+      <label class="rotulo" for="latex" id="titulo-passo">LaTeX do passo <span id="n-passo">1</span></label>
       <textarea id="latex" spellcheck="false" autocomplete="off" autocapitalize="off"
         placeholder="\Delta_{\mathrm{r}}G^\ominus=-nFE^\ominus"></textarea>
-      <p class="dica">O campo e o LaTeX ficam sempre iguais: edite qualquer um dos dois. As convenções abaixo só
-        mudam o que é copiado ou exportado.</p>
-    </div>
+      <p class="dica">O passo em foco e este LaTeX ficam sempre iguais: edite qualquer um dos dois. As convenções
+        abaixo só mudam o que é copiado ou exportado.</p>
+      <div class="acoes" role="group" aria-label="Copiar o passo em foco">
+        <span class="grupo">Copiar passo</span>
+        <button type="button" class="principal" id="btn-latex">LaTeX</button>
+        <button type="button" id="btn-equation">equation</button>
+        <button type="button" id="btn-mathml">MathML</button>
+        <button type="button" id="btn-copiar-svg">SVG</button>
+        <button type="button" id="btn-copiar-png">PNG</button>
+      </div>
+      <div class="acoes" role="group" aria-label="Baixar o passo em foco">
+        <span class="grupo">Baixar passo</span>
+        <button type="button" id="btn-svg">SVG</button>
+        <button type="button" id="btn-png">PNG</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </section>
 
-    <!-- ACOES -->
-    <div class="acoes" role="group" aria-label="Copiar para a área de transferência">
-      <span class="grupo">Copiar</span>
-      <button type="button" class="principal" id="btn-latex">LaTeX</button>
-      <button type="button" id="btn-equation">equation</button>
-      <button type="button" id="btn-mathml">MathML</button>
-      <button type="button" id="btn-copiar-svg">SVG</button>
-      <button type="button" id="btn-copiar-png">PNG</button>
-    </div>
-    <div class="acoes" role="group" aria-label="Baixar arquivo">
-      <span class="grupo">Baixar</span>
-      <button type="button" id="btn-svg">SVG</button>
-      <button type="button" id="btn-png">PNG</button>
-      <span class="separador"></span>
-      <button type="button" class="discreto" id="btn-limpar">Limpar</button>
-    </div>
-
-    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <!-- DEMONSTRACAO INTEIRA -->
+    <section class="bloco demo-toda" aria-labelledby="titulo-toda">
+      <span class="rotulo" id="titulo-toda">Demonstração inteira</span>
+      <div class="opcoes opcoes--demo">
+        <label><input type="checkbox" id="op-alinhar" checked>
+          <span>Alinhar no primeiro sinal de relação <code>=, ≤, ≈, →, ⇌…</code></span></label>
+        <label><input type="checkbox" id="op-numerar">
+          <span>Numerar a última linha (as outras levam <code>\nonumber</code>)</span></label>
+      </div>
+      <div class="acoes" role="group" aria-label="Copiar a demonstração">
+        <span class="grupo">Copiar tudo</span>
+        <button type="button" class="principal" id="btn-demo-align">LaTeX (align)</button>
+        <button type="button" id="btn-demo-mathml">MathML</button>
+        <button type="button" id="btn-demo-copiar-svg">SVG</button>
+        <button type="button" id="btn-demo-copiar-png">PNG</button>
+      </div>
+      <div class="acoes" role="group" aria-label="Baixar a demonstração">
+        <span class="grupo">Baixar tudo</span>
+        <button type="button" id="btn-demo-svg">SVG</button>
+        <button type="button" id="btn-demo-png">PNG</button>
+      </div>
+      <p class="status" id="status-demo" role="status" aria-live="polite"></p>
+      <details class="detalhes">
+        <summary>Ver o LaTeX da demonstração</summary>
+        <textarea id="latex-demo" readonly spellcheck="false" rows="6" aria-label="LaTeX da demonstração"></textarea>
+        <p class="dica">Cores usam <code>\textcolor</code>: no preâmbulo, <code>\usepackage{xcolor}</code>.
+          Comentários saem como <code>\text{…}</code> à direita, no estilo justificativa.</p>
+      </details>
+    </section>
 
     <!-- CONVENCOES -->
     <fieldset>
@@ -653,67 +697,6 @@
           <span>Estado padrão <code>^\circ → ^\ominus</code> (desligado por padrão: 30^\circ é ângulo)</span></label>
       </div>
     </fieldset>
-
-    <!-- DEMONSTRACAO: varias equacoes, uma por linha, com comentario -->
-    <section class="demo" aria-labelledby="titulo-demo">
-      <div class="demo-topo">
-        <h2 id="titulo-demo">Demonstração</h2>
-        <p class="dica">Uma equação por passo, com a justificativa ao lado. Cada passo é editável no lugar
-          (o teclado e as cores valem para o passo em foco). <strong>⧉</strong> copia o passo para a linha
-          de baixo, para você só alterar o que muda. A demonstração fica guardada neste navegador.</p>
-      </div>
-
-      <ol class="passos" id="passos"></ol>
-      <p class="vazio" id="passos-vazio">Nenhum passo ainda. Escreva a equação no campo acima e use
-        "Adicionar passo", ou comece com um passo em branco.</p>
-
-      <div class="acoes">
-        <button type="button" class="principal" id="btn-passo-add" title="Copia a equação do campo acima para um novo passo">Adicionar passo</button>
-        <button type="button" id="btn-passo-vazio">Passo em branco</button>
-        <button type="button" id="btn-passo-importar" aria-expanded="false" aria-controls="importar">Importar de LaTeX…</button>
-        <span class="separador"></span>
-        <button type="button" class="discreto" id="btn-demo-limpar">Limpar demonstração</button>
-      </div>
-
-      <div class="importar" id="importar" hidden>
-        <label class="rotulo" for="importar-texto">Cole um ambiente align (ou linhas separadas por \\)</label>
-        <textarea id="importar-texto" spellcheck="false" rows="4"
-          placeholder="\begin{align}&#10;  x &= y && \text{hipótese} \\&#10;  2x &= 2y && \text{multiplicando por 2}&#10;\end{align}"></textarea>
-        <div class="acoes">
-          <button type="button" id="btn-importar-ok">Acrescentar como passos</button>
-          <button type="button" class="discreto" id="btn-importar-fechar">Fechar</button>
-        </div>
-      </div>
-
-      <div class="opcoes opcoes--demo">
-        <label><input type="checkbox" id="op-alinhar" checked>
-          <span>Alinhar no primeiro sinal de relação <code>=, ≤, ≈, →, ⇌…</code></span></label>
-        <label><input type="checkbox" id="op-numerar">
-          <span>Numerar a última linha (as outras levam <code>\nonumber</code>)</span></label>
-      </div>
-
-      <div class="acoes" role="group" aria-label="Copiar a demonstração">
-        <span class="grupo">Copiar</span>
-        <button type="button" class="principal" id="btn-demo-align">LaTeX (align)</button>
-        <button type="button" id="btn-demo-mathml">MathML</button>
-        <button type="button" id="btn-demo-copiar-svg">SVG</button>
-        <button type="button" id="btn-demo-copiar-png">PNG</button>
-      </div>
-      <div class="acoes" role="group" aria-label="Baixar a demonstração">
-        <span class="grupo">Baixar</span>
-        <button type="button" id="btn-demo-svg">SVG</button>
-        <button type="button" id="btn-demo-png">PNG</button>
-      </div>
-
-      <p class="status" id="status-demo" role="status" aria-live="polite"></p>
-
-      <details class="detalhes">
-        <summary>Ver o LaTeX da demonstração</summary>
-        <textarea id="latex-demo" readonly spellcheck="false" rows="6" aria-label="LaTeX da demonstração"></textarea>
-        <p class="dica">Cores usam <code>\textcolor</code>: no preâmbulo, <code>\usepackage{xcolor}</code>.
-          Comentários saem como <code>\text{…}</code> à direita, no estilo justificativa.</p>
-      </details>
-    </section>
 
     <!-- HISTORICO -->
     <div class="historico-topo">
@@ -1111,7 +1094,7 @@
     // Rotulo de uma tecla: o label (HTML nosso) ou o LaTeX desenhado pelo MathLive
     function rotuloDaTecla(tecla) {
       if (tecla.label) return tecla.label;
-      const latex = tecla.latex.replace(/#[@0?]/g, "\\placeholder{}");
+      const latex = tecla.latex.replace(/#[@0?]/g, "\\square");
       try {
         if (window.MathLive && MathLive.convertLatexToMarkup) return MathLive.convertLatexToMarkup(latex);
       } catch (e) { /* cai no texto */ }
@@ -1324,21 +1307,58 @@
     const elStatus = $("status");
     const listaHistorico = $("historico");
     const avisoHistoricoVazio = $("historico-vazio");
-    let campo = null;                               // <math-field> principal, criado em iniciarCampo
-    let campoPronto = false;
-    let campoAtivo = null;                          // ultimo <math-field> que recebeu o foco
+    // Nao ha mais um campo principal: o "campo" e sempre o <math-field> do
+    // passo em foco (ultimo que recebeu o foco). O textarea de LaTeX e os
+    // botoes "passo" agem sobre ele.
+    let campo = null;
+    let campoPronto = false;                         // MathLive carregado
+    let campoAtivo = null;
     document.addEventListener("focusin", (e) => {
-      if (e.target && e.target.tagName === "MATH-FIELD") campoAtivo = e.target;
+      if (e.target && e.target.tagName === "MATH-FIELD") ativarCampo(e.target);
     });
     function campoEmFoco() { return (campoAtivo && campoAtivo.isConnected) ? campoAtivo : campo; }
 
-    // Todo <math-field> da pagina (principal e passos) nasce aqui
+    // Marca o passo como ativo e espelha o LaTeX dele no textarea
+    function ativarCampo(mf) {
+      campoAtivo = mf;
+      campo = mf;
+      passos.forEach((p) => p.li.classList.toggle("ativo", p.mf === mf));
+      const i = passos.findIndex((p) => p.mf === mf);
+      $("n-passo").textContent = i >= 0 ? String(i + 1) : "";
+      sincronizando = true;
+      areaLatex.value = limparLatexDoCampo(mf.getValue("latex"));
+      sincronizando = false;
+    }
+
+    // Todo <math-field> da pagina nasce aqui
     function criarCampo() {
       const mf = new MathfieldElement();
       mf.setAttribute("math-virtual-keyboard-policy", "auto");
       mf.smartFence = true;
       mf.addEventListener("beforeinput", aplicarNaSelecao);   // selecao vira argumento + recentes
+      mf.addEventListener("keydown", teclaFisica, true);
       return mf;
+    }
+
+    // Teclas fisicas que o MathLive nao trata como queremos:
+    // - "/" vindo de uma tecla que nao e a Slash do teclado americano (no
+    //   ABNT2 e no teclado numerico, codigo IntlRo/NumpadDivide) vira
+    //   "\slash" no MathLive; aqui vira fracao, como a Slash.
+    // - Enter abre um passo novo abaixo (Shift+Enter deixa com o MathLive).
+    function teclaFisica(e) {
+      const mf = e.currentTarget;
+      if (e.key === "/" && e.code !== "Slash" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        inserirNoCampo(mf, "\\frac{#@}{#?}");
+        return;
+      }
+      if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        const i = passos.findIndex((p) => p.mf === mf);
+        adicionarPasso("", "", i + 1, true);
+      }
     }
 
     /* =====================================================================
@@ -1398,7 +1418,7 @@
     function exigirEquacao() {
       const original = latexAtual();
       if (!original) {
-        mostrarStatus("O campo está vazio. Digite uma equação primeiro.", true);
+        mostrarStatus("O passo em foco está vazio. Clique num passo com equação ou escreva uma.", true);
         return null;
       }
       return { original, saida: latexDeSaida() };
@@ -1412,23 +1432,29 @@
        ===================================================================== */
     let sincronizando = false;
 
-    function campoParaTexto() {
-      if (sincronizando || !campoPronto) return;
+    // Chamado pelo input de cada passo; so o passo em foco escreve no textarea
+    function campoParaTexto(mf) {
+      if (sincronizando || mf !== campoAtivo) return;
       sincronizando = true;
-      areaLatex.value = limparLatexDoCampo(campo.getValue("latex"));
+      areaLatex.value = limparLatexDoCampo(mf.getValue("latex"));
       sincronizando = false;
     }
 
     function textoParaCampo() {
       if (sincronizando || !campoPronto) return;
+      const alvo = campoEmFoco();
+      if (!alvo) return;
       sincronizando = true;
-      campo.setValue(areaLatex.value, { silenceNotifications: true });
+      alvo.setValue(areaLatex.value, { silenceNotifications: true });
+      const p = passos.find((x) => x.mf === alvo);
+      if (p) { p.latex = limparLatexDoCampo(alvo.getValue("latex")); demonstracaoMudou(); }
       sincronizando = false;
     }
 
+    // Reabrir uma equacao do historico: vira um passo novo, em foco
     function definirLatex(latex) {
-      areaLatex.value = latex;
-      textoParaCampo();
+      if (!campoPronto) { areaLatex.value = latex; return; }
+      adicionarPasso(latex, "", passos.length, true);
     }
 
     /* =====================================================================
@@ -1751,12 +1777,6 @@
       });
     }
 
-    function limpar() {
-      definirLatex("");
-      if (campoPronto) campo.focus();
-      mostrarStatus("Campo limpo.");
-    }
-
     /* =====================================================================
        DEMONSTRACAO (lista de passos: equacao + comentario)
        ---------------------------------------------------------------------
@@ -1778,7 +1798,6 @@
     // Chamado a cada mudanca: renumera, salva e atualiza o LaTeX exibido
     function demonstracaoMudou() {
       renumerarPassos();
-      $("passos-vazio").hidden = passos.length > 0;
       clearTimeout(temporizadorDemo);
       temporizadorDemo = setTimeout(() => {
         salvarDemonstracao();
@@ -1841,7 +1860,11 @@
       );
       li.append(n, caixaEq, input, botoes);
 
-      mf.addEventListener("input", () => { passo.latex = limparLatexDoCampo(mf.getValue("latex")); demonstracaoMudou(); });
+      mf.addEventListener("input", () => {
+        passo.latex = limparLatexDoCampo(mf.getValue("latex"));
+        campoParaTexto(mf);
+        demonstracaoMudou();
+      });
       input.addEventListener("input", () => { passo.comentario = input.value; demonstracaoMudou(); });
 
       const lista = $("passos");
@@ -1850,6 +1873,7 @@
       passos.splice(indice, 0, passo);
       demonstracaoMudou();
       if (focar) { mf.focus(); mf.executeCommand("moveToMathfieldEnd"); }
+      if (!campoAtivo) ativarCampo(mf);
       return passo;
     }
 
@@ -1857,6 +1881,12 @@
       if (i < 0) return;
       const [p] = passos.splice(i, 1);
       p.li.remove();
+      if (!passos.length) adicionarPasso("", "", 0, false);
+      if (p.mf === campoAtivo) {
+        const vizinho = passos[Math.min(i, passos.length - 1)];
+        vizinho.mf.focus();
+        ativarCampo(vizinho.mf);
+      }
       demonstracaoMudou();
       mostrarStatus("Passo removido.");
     }
@@ -1875,19 +1905,26 @@
     function limparDemonstracao(silencioso = false) {
       passos.forEach((p) => p.li.remove());
       passos = [];
+      campoAtivo = null;
+      campo = null;
       demonstracaoMudou();
-      if (!silencioso) mostrarStatus("Demonstração apagada.");
+      if (!silencioso) {
+        adicionarPasso("", "", 0, true);           // a pagina nunca fica sem um passo
+        mostrarStatus("Demonstração apagada.");
+      }
     }
 
     function carregarPassos(lista) {
       limparDemonstracao(true);
       (lista || []).forEach((p) => adicionarPasso(p.latex || "", p.comentario || ""));
+      if (!passos.length) adicionarPasso("", "", 0, false);
+      ativarCampo(passos[0].mf);
     }
 
     function restaurarDemonstracao() {
       let lista = [];
       try { lista = JSON.parse(localStorage.getItem(CHAVE_DEMONSTRACAO) || "[]"); } catch (e) { lista = []; }
-      if (Array.isArray(lista) && lista.length) carregarPassos(lista);
+      carregarPassos(Array.isArray(lista) ? lista : []);
       demonstracaoMudou();
     }
 
@@ -1991,13 +2028,11 @@
     }
 
     function ligarDemonstracao() {
-      $("btn-passo-add").addEventListener("click", () => {
-        const latex = latexAtual();
-        if (!latex) { mostrarStatus("O campo acima está vazio. Escreva a equação antes de adicionar.", true); return; }
-        adicionarPasso(latex, "");
-        mostrarStatus("Passo " + passos.length + " adicionado.");
+      // Novo passo entra logo abaixo do passo em foco
+      $("btn-passo-vazio").addEventListener("click", () => {
+        const i = passos.findIndex((p) => p.mf === campoAtivo);
+        adicionarPasso("", "", i >= 0 ? i + 1 : passos.length, true);
       });
-      $("btn-passo-vazio").addEventListener("click", () => adicionarPasso("", "", passos.length, true));
       $("btn-demo-limpar").addEventListener("click", () => {
         if (passos.length) registrarHistorico(latexDaDemonstracao(), "demonstração (" + passos.length + " passos) · apagada", passosSimples());
         limparDemonstracao();
@@ -2080,14 +2115,13 @@
             // A demonstracao atual, se houver, vai para o historico antes de ser trocada
             if (passos.length) registrarHistorico(latexDaDemonstracao(), "demonstração (" + passos.length + " passos) · substituída", passosSimples());
             carregarPassos(item.passos);
+            passos[0].mf.focus();
             $("titulo-demo").scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
             mostrarStatus("Demonstração reaberta (" + item.passos.length + " passos).");
             return;
           }
           definirLatex(item.latex);
-          if (campoPronto) campo.focus();
-          window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-          mostrarStatus("Equação reaberta.");
+          mostrarStatus("Equação reaberta como passo " + passos.length + ".");
         });
         li.append(codigo, botao, meta);
         listaHistorico.appendChild(li);
@@ -2115,7 +2149,6 @@
       ligar("btn-demo-png", "png", "baixar", alvoDemonstracao);
       ligarDemonstracao();
       ligarCores();
-      $("btn-limpar").addEventListener("click", limpar);
       $("btn-limpar-historico").addEventListener("click", () => {
         gravarHistorico([]);
         desenharHistorico();
@@ -2144,27 +2177,21 @@
         // na pagina; por isso o campo e criado aqui, e nao no HTML.
         MathfieldElement.fontsDirectory = URL_FONTES_MATHLIVE;
         MathfieldElement.soundsDirectory = null;     // sem cliques de teclado
-        campo = criarCampo();
-        campo.id = "campo";
-        campo.setAttribute("aria-labelledby", "rotulo-campo");
-        $("lugar-campo").replaceChildren(campo);
-        campo.addEventListener("input", campoParaTexto);
         campoPronto = true;
-        campoAtivo = campo;
         configurarTeclado();
         $("rapidas").hidden = false;
         desenharRecentes();
-        restaurarDemonstracao();
-        if (areaLatex.value) textoParaCampo();      // texto digitado antes de carregar
-        campo.focus();
+        restaurarDemonstracao();                     // rascunho, ou um passo em branco
+        const digitado = areaLatex.value;            // texto digitado antes de carregar
+        if (digitado && passos.length === 1 && !passos[0].latex) { passos[0].mf.value = digitado; passos[0].latex = digitado; }
+        passos[0].mf.focus();
       } catch (e) {
-        // Sem MathLive: o textarea continua valendo para copiar e exportar
-        const aviso = document.createElement("p");
-        aviso.className = "aviso-campo";
+        // Sem MathLive: o textarea continua valendo para copiar e exportar um passo
+        const aviso = $("aviso-mathlive");
+        aviso.hidden = false;
         aviso.textContent = "Não foi possível carregar o campo visual (MathLive). Verifique a conexão ou se o site " +
           "bloqueia cdn.jsdelivr.net. Enquanto isso, digite o LaTeX no campo abaixo: copiar e exportar continuam funcionando.";
-        $("lugar-campo").replaceChildren(aviso);
-        campo = null;
+        $("n-passo").textContent = "";
         areaLatex.focus();
       }
     }
