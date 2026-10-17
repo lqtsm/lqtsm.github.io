@@ -282,14 +282,27 @@
       margin: 0.75rem 0 0;
       padding: 0;
     }
+    /* Passo: numero | equacao (largura toda); por baixo, colada na equacao,
+       uma faixa com o comentario (fonte menor) e os botoes do passo */
     .passo {
       display: grid;
-      grid-template-columns: 1.6rem minmax(0, 3fr) minmax(0, 2fr) auto;
-      gap: 0.4rem 0.6rem;
-      align-items: center;
-      padding: 0.45rem 0;
+      grid-template-columns: 1.6rem minmax(0, 1fr);
+      gap: 0 0.6rem;
+      align-items: start;
+      padding: 0.55rem 0;
       border-bottom: 1px solid var(--linha);
     }
+    .passo-n { padding-top: 1.1rem; }
+    .passo-rodape {
+      grid-column: 2;
+      display: flex;
+      align-items: center;
+      background: var(--fundo);
+      border: 1px solid var(--linha-forte);
+      border-top: 0;
+      border-radius: 0 0 var(--raio) var(--raio);
+    }
+    .passo.ativo .passo-rodape { border-color: var(--acento); }
     .passo-n {
       font-size: 0.8rem;
       font-variant-numeric: tabular-nums;
@@ -300,30 +313,35 @@
       min-height: 3.6rem;
       padding: 0.5rem 0.8rem;
       font-size: 1.75rem;
+      border-radius: var(--raio) var(--raio) 0 0;   /* emenda com o comentario */
     }
     .passo.ativo math-field { border-color: var(--acento); }
     .passo.ativo .passo-n { color: var(--acento); font-weight: 600; }
     .passo math-field::part(menu-toggle) { display: none; }
     .passo-eq { min-width: 0; overflow-x: clip; overflow-clip-margin: 4px; }
     .passo-coment {
-      width: 100%;
+      flex: 1 1 auto;
       min-width: 0;
-      padding: 0.5rem 0.6rem;
-      font: 400 0.92rem/1.4 var(--fonte-ui);
-      color: var(--texto);
-      background: var(--fundo-campo);
-      border: 1px solid var(--linha);
-      border-radius: var(--raio);
+      padding: 0.3rem 0.8rem;
+      font: 400 0.82rem/1.4 var(--fonte-ui);
+      color: var(--texto-suave);
+      background: transparent;
+      border: 0;
+      border-radius: 0 0 0 var(--raio);
     }
+    .passo-coment:focus-visible { outline-offset: -2px; color: var(--texto); }
     .passo-botoes {
       display: flex;
-      gap: 0.2rem;
+      flex: 0 0 auto;
+      gap: 0.1rem;
+      padding: 0 0.25rem;
+      border-left: 1px solid var(--linha);
     }
     .passo-botoes button {
-      width: 2rem;
-      height: 2rem;
+      width: 1.7rem;
+      height: 1.7rem;
       padding: 0;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       line-height: 1;
       color: var(--texto-suave);
       border-color: transparent;
@@ -342,11 +360,7 @@
     }
     .detalhes textarea { margin-top: 0.5rem; }
     @media (max-width: 700px) {
-      .passo {
-        grid-template-columns: 1.6rem minmax(0, 1fr);
-      }
-      .passo-coment { grid-column: 2; }
-      .passo-botoes { grid-column: 2; justify-content: flex-end; }
+      .passo-botoes button { width: 2rem; height: 2rem; }   /* dedo */
     }
 
     .lugar-campo {
@@ -1841,7 +1855,7 @@
       const input = document.createElement("input");
       input.type = "text";
       input.className = "passo-coment";
-      input.placeholder = "comentário / justificativa";
+      input.placeholder = "comentário / justificativa (opcional)";
       input.value = comentario;
       const botoes = document.createElement("div");
       botoes.className = "passo-botoes";
@@ -1858,7 +1872,10 @@
         }),
         botaoPasso("apagar", "✕", "Remover este passo", () => removerPasso(indiceDe())),
       );
-      li.append(n, caixaEq, input, botoes);
+      const rodape = document.createElement("div");
+      rodape.className = "passo-rodape";
+      rodape.append(input, botoes);
+      li.append(n, caixaEq, rodape);
 
       mf.addEventListener("input", () => {
         passo.latex = limparLatexDoCampo(mf.getValue("latex"));
