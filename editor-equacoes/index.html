@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<!--
+  EDITOR DE EQUACOES | LQTSM - UERJ
+  ==========================================================================
+  Pagina unica e autocontida (CSS e JS inline). Bibliotecas externas so por
+  CDN e com versao fixada:
+    - MathLive 0.110.0 (cdn.jsdelivr.net) .......... campo de edicao visual
+    - MathJax 3.2.2, tex-svg (cdn.jsdelivr.net) ..... so na exportacao
+                                                      (MathML, SVG e PNG)
+    - IBM Plex Sans e IBM Plex Mono (Google Fonts)
+
+  SUPOSICOES (o pedido deixava em aberto)
+  1. A pagina fica em /editor-equacoes/index.html do site lqtsm.com.br e
+     volta para Materiais > Ferramentas por "../materiais.html#ferramentas".
+     Publicada sozinha em outro lugar, so esse link precisa ser trocado.
+  2. O MathML e gerado pelo MathJax (tex2mml) a partir do LaTeX ja
+     convertido pelas convencoes, e nao pelo MathLive: o MathJax entrega um
+     <math> completo, com xmlns e display="block", que o Word e o
+     LibreOffice/OnlyOffice reconhecem ao colar. Se o MathJax nao carregar,
+     a pagina usa o MathML do MathLive como reserva.
+  3. As convencoes valem para TODAS as saidas (copiar, equation, MathML,
+     SVG, PNG). O campo e o textarea mostram sempre o LaTeX original.
+  4. O historico guarda o LaTeX original (sem convencoes), para "Reabrir"
+     devolver ao campo exatamente o que foi digitado.
+  5. SVG: o MathJax mede em "ex"; a conversao usa 1 ex = 10 px (fonte de
+     20 px). A cor sai preta fixa (#000) no SVG e no PNG, em vez de
+     currentColor, para abrir igual no Inkscape, no Word e no tema escuro.
+  6. Copiar MathML coloca o texto do <math> na area de transferencia como
+     texto simples; o Word converte ao colar com "Manter somente texto"
+     desligado (Colar especial > Texto nao formatado tambem funciona).
+  ==========================================================================
+-->
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de equações | LQTSM — UERJ</title>
+  <meta name="description"
+    content="Editor visual de equações do LQTSM: digite a equação, veja o LaTeX ao lado e copie como LaTeX, equation ou MathML, ou baixe em SVG e PNG.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ---------------------------------------------------------------------
+       CORES E MEDIDAS (tema claro; o escuro redefine abaixo)
+       --------------------------------------------------------------------- */
+    :root {
+      --fundo: #fbfbfa;
+      --fundo-campo: #ffffff;
+      --texto: #2b2d31;
+      --texto-suave: #5d6168;
+      --linha: #d9dbde;
+      --linha-forte: #b4b8be;
+      --acento: #1f4e8c;          /* azul-tinta: foco e botao principal */
+      --acento-texto: #ffffff;
+      --acento-suave: #e8eef7;
+      --erro: #a8322b;
+      --ok: #2f6b3a;
+      --raio: 4px;
+      --fonte-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --fonte-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+      color-scheme: light;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fundo: #16181b;
+        --fundo-campo: #1d2024;
+        --texto: #e4e6e9;
+        --texto-suave: #a2a7ae;
+        --linha: #33373d;
+        --linha-forte: #4a4f57;
+        --acento: #8db4ec;
+        --acento-texto: #10213a;
+        --acento-suave: #1e2a3b;
+        --erro: #f08f86;
+        --ok: #8fd19b;
+        color-scheme: dark;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--fundo);
+      color: var(--texto);
+      font: 400 1rem/1.5 var(--fonte-ui);
+    }
+
+    .pagina {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem;
+    }
+
+    a { color: var(--acento); }
+
+    :focus-visible {
+      outline: 2px solid var(--acento);
+      outline-offset: 2px;
+    }
+
+    /* ---------------------------------------------------------------------
+       CABECALHO
+       --------------------------------------------------------------------- */
+    .trilha {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--texto-suave);
+    }
+    .trilha a { text-decoration: none; }
+    .trilha a:hover { text-decoration: underline; }
+
+    h1 {
+      margin: 0.25rem 0 0.25rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .intro {
+      margin: 0 0 1.5rem;
+      max-width: 62ch;
+      color: var(--texto-suave);
+    }
+
+    kbd {
+      font: 500 0.8em var(--fonte-mono);
+      padding: 0 0.3em;
+      border: 1px solid var(--linha-forte);
+      border-radius: 3px;
+      background: var(--fundo-campo);
+      color: var(--texto);
+    }
+
+    /* ---------------------------------------------------------------------
+       CAMPO DE EQUACAO (elemento dominante)
+       --------------------------------------------------------------------- */
+    .rotulo {
+      display: block;
+      margin: 0 0 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--texto-suave);
+    }
+
+    math-field {
+      display: block;
+      width: 100%;
+      min-height: 5.5rem;
+      padding: 1rem 1.25rem;
+      font-size: 2rem;
+      color: var(--texto);
+      background: var(--fundo-campo);
+      border: 1px solid var(--linha-forte);
+      border-radius: var(--raio);
+      /* Variaveis do proprio MathLive */
+      --caret-color: var(--acento);
+      --selection-background-color: var(--acento-suave);
+      --selection-color: var(--texto);
+      --contains-highlight-background-color: transparent;
+      --smart-fence-color: var(--texto-suave);
+    }
+    math-field:focus-within {
+      outline: 2px solid var(--acento);
+      outline-offset: 1px;
+    }
+    math-field::part(virtual-keyboard-toggle),
+    math-field::part(menu-toggle) {
+      color: var(--texto-suave);
+    }
+
+    .lugar-campo {
+      min-height: 5.5rem;
+      /* O conteudo interno do MathLive pode passar da borda ao redimensionar;
+         corta so na horizontal, deixando o contorno de foco visivel */
+      overflow-x: clip;
+      overflow-clip-margin: 4px;
+    }
+
+    .aviso-campo {
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--erro);
+      border-radius: var(--raio);
+      color: var(--erro);
+    }
+
+    .dica {
+      margin: 0.5rem 0 0;
+      font-size: 0.85rem;
+      color: var(--texto-suave);
+    }
+
+    /* ---------------------------------------------------------------------
+       LaTeX
+       --------------------------------------------------------------------- */
+    .bloco { margin-top: 1.5rem; }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 5.5rem;
+      padding: 0.75rem 0.9rem;
+      resize: vertical;
+      font: 400 0.95rem/1.5 var(--fonte-mono);
+      color: var(--texto);
+      background: var(--fundo-campo);
+      border: 1px solid var(--linha);
+      border-radius: var(--raio);
+    }
+    textarea:focus-visible { outline-offset: 1px; }
+
+    /* ---------------------------------------------------------------------
+       BOTOES
+       --------------------------------------------------------------------- */
+    .acoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    button {
+      font: 500 0.9rem/1.2 var(--fonte-ui);
+      padding: 0.55rem 0.9rem;
+      color: var(--texto);
+      background: transparent;
+      border: 1px solid var(--linha-forte);
+      border-radius: var(--raio);
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--texto-suave); }
+    button:disabled { opacity: 0.5; cursor: progress; }
+
+    button.principal {
+      color: var(--acento-texto);
+      background: var(--acento);
+      border-color: var(--acento);
+    }
+    button.principal:hover { filter: brightness(1.08); }
+
+    button.discreto {
+      border-color: transparent;
+      color: var(--texto-suave);
+    }
+    button.discreto:hover { color: var(--erro); border-color: var(--linha); }
+
+    .separador { flex: 1 1 auto; }
+
+    /* ---------------------------------------------------------------------
+       CONVENCOES
+       --------------------------------------------------------------------- */
+    fieldset {
+      margin: 1.5rem 0 0;
+      padding: 0.75rem 0 0;
+      border: 0;
+      border-top: 1px solid var(--linha);
+    }
+    legend {
+      padding: 0 0.5rem 0 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--texto-suave);
+    }
+    .opcoes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 0.4rem 1.5rem;
+      margin-top: 0.4rem;
+    }
+    .opcoes label {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .opcoes input { accent-color: var(--acento); }
+    .opcoes code {
+      font: 400 0.82rem var(--fonte-mono);
+      color: var(--texto-suave);
+    }
+
+    /* ---------------------------------------------------------------------
+       STATUS
+       --------------------------------------------------------------------- */
+    .status {
+      min-height: 1.5rem;
+      margin: 0.75rem 0 0;
+      font-size: 0.9rem;
+      color: var(--ok);
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+    .status.erro { color: var(--erro); }
+    .status.sumindo { opacity: 0; }
+
+    /* ---------------------------------------------------------------------
+       HISTORICO
+       --------------------------------------------------------------------- */
+    .historico-topo {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--linha);
+    }
+    .historico-topo h2 {
+      margin: 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--texto-suave);
+    }
+
+    ol.historico {
+      list-style: none;
+      margin: 0.5rem 0 0;
+      padding: 0;
+    }
+    ol.historico li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.25rem 1rem;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--linha);
+    }
+    .h-latex {
+      overflow-x: auto;
+      white-space: nowrap;
+      font: 400 0.88rem/1.4 var(--fonte-mono);
+    }
+    .h-meta {
+      grid-column: 1;
+      font-size: 0.78rem;
+      color: var(--texto-suave);
+    }
+    ol.historico button {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      padding: 0.4rem 0.75rem;
+    }
+    .vazio {
+      margin: 0.5rem 0 0;
+      font-size: 0.9rem;
+      color: var(--texto-suave);
+    }
+
+    .rodape {
+      margin-top: 2.5rem;
+      font-size: 0.8rem;
+      color: var(--texto-suave);
+    }
+
+    /* Celular: botoes ocupam a largura em duas colunas */
+    @media (max-width: 520px) {
+      .pagina { padding: 1rem 0.75rem 2.5rem; }
+      math-field { font-size: 1.6rem; padding: 0.75rem; }
+      .acoes button { flex: 1 1 calc(50% - 0.5rem); }
+      .separador { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+
+  <!-- Bibliotecas por CDN, versoes fixadas. O MathJax NAO e carregado aqui:
+       so entra na primeira exportacao (ver carregarMathJax). -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.110.0/mathlive.min.js"
+    onerror="window.__falhaMathLive = true"></script>
+</head>
+
+<body>
+  <main class="pagina">
+
+    <p class="trilha"><a href="../materiais.html#ferramentas">LQTSM · Materiais › Ferramentas</a></p>
+    <h1>Editor de equações</h1>
+    <p class="intro">Digite a equação no campo abaixo e veja o LaTeX ao lado. <kbd>/</kbd> cria fração,
+      <kbd>^</kbd> e <kbd>_</kbd> criam expoente e índice, <kbd>\</kbd> abre um comando LaTeX e as setas
+      andam pela estrutura. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> copia o LaTeX.</p>
+
+    <!-- CAMPO VISUAL -->
+    <span class="rotulo" id="rotulo-campo">Equação</span>
+    <!-- O <math-field> e criado pelo script depois de apontar as fontes do
+         MathLive para o CDN (ver iniciarCampo). -->
+    <div id="lugar-campo" class="lugar-campo"></div>
+
+    <!-- LaTeX -->
+    <div class="bloco">
+      <label class="rotulo" for="latex">LaTeX</label>
+      <textarea id="latex" spellcheck="false" autocomplete="off" autocapitalize="off"
+        placeholder="\Delta_{\mathrm{r}}G^\ominus=-nFE^\ominus"></textarea>
+      <p class="dica">O campo e o LaTeX ficam sempre iguais: edite qualquer um dos dois. As convenções abaixo só
+        mudam o que é copiado ou exportado.</p>
+    </div>
+
+    <!-- ACOES -->
+    <div class="acoes" role="group" aria-label="Copiar e exportar">
+      <button type="button" class="principal" id="btn-latex">Copiar LaTeX</button>
+      <button type="button" id="btn-equation">Copiar como equation</button>
+      <button type="button" id="btn-mathml">Copiar MathML</button>
+      <button type="button" id="btn-svg">Baixar SVG</button>
+      <button type="button" id="btn-png">Baixar PNG</button>
+      <span class="separador"></span>
+      <button type="button" class="discreto" id="btn-limpar">Limpar</button>
+    </div>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <!-- CONVENCOES -->
+    <fieldset>
+      <legend>Convenções na saída</legend>
+      <div class="opcoes">
+        <label><input type="checkbox" id="op-virgula" checked>
+          <span>Vírgula decimal <code>3.5 → 3{,}5</code></span></label>
+        <label><input type="checkbox" id="op-exp" checked>
+          <span>Exponencial como potência <code>\exp(x) → e^{x}</code></span></label>
+        <label><input type="checkbox" id="op-trig" checked>
+          <span>Seno e tangente em português <code>\sin → sen, \tan → tg</code></span></label>
+        <label><input type="checkbox" id="op-padrao">
+          <span>Estado padrão <code>^\circ → ^\ominus</code> (desligado por padrão: 30^\circ é ângulo)</span></label>
+      </div>
+    </fieldset>
+
+    <!-- HISTORICO -->
+    <div class="historico-topo">
+      <h2 id="titulo-historico">Últimas equações copiadas ou exportadas</h2>
+      <button type="button" class="discreto" id="btn-limpar-historico">Apagar histórico</button>
+    </div>
+    <ol class="historico" id="historico" aria-labelledby="titulo-historico"></ol>
+    <p class="vazio" id="historico-vazio">Nada por aqui ainda. Ao copiar ou exportar, a equação aparece nesta lista.</p>
+
+    <p class="rodape">Tudo roda no seu navegador; nada é enviado a servidor. O histórico fica só neste navegador.
+      Campo de edição: <a href="https://cortexjs.io/mathlive/" rel="noopener">MathLive</a> (MIT). Exportação:
+      <a href="https://www.mathjax.org/" rel="noopener">MathJax</a> (Apache 2.0).</p>
+  </main>
+
+  <script>
+    /* =====================================================================
+       CONFIGURACAO
+       ===================================================================== */
+    const TAMANHO_HISTORICO = 20;                 // equacoes guardadas
+    const ESCALA_PNG = 4;                          // PNG com 4x a resolucao do SVG
+    const CHAVE_HISTORICO = "lqtsm-editor-equacoes-historico-v1";
+    const PX_POR_EX = 10;                          // 1 ex do MathJax = 10 px (fonte de 20 px)
+    const COR_EXPORTACAO = "#000000";              // cor da equacao no SVG e no PNG
+    const NOME_ARQUIVO = "equacao";                // equacao.svg, equacao.png
+    const TEMPO_STATUS_MS = 2600;                  // mensagem de sucesso some depois disso
+    const TEMPO_ERRO_MS = 9000;                    // mensagem de erro fica mais tempo
+    const URL_MATHJAX = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
+    const URL_FONTES_MATHLIVE = "https://cdn.jsdelivr.net/npm/mathlive@0.110.0/fonts";
+    const ESPERA_MATHLIVE_MS = 12000;              // desiste do MathLive depois disso
+
+    /* =====================================================================
+       CONVENCOES (funcoes puras sobre a string LaTeX)
+       ---------------------------------------------------------------------
+       Versao provisoria: agem sobre o TEXTO com expressoes regulares e uma
+       busca de parenteses balanceados. A versao definitiva agira sobre a
+       arvore sintatica (por exemplo, a do MathLive/Compute Engine), o que
+       evita casos como numeros dentro de \text{...} ou de nomes de rotulo.
+       ===================================================================== */
+
+    // 3.5 -> 3{,}5  (so ponto entre dois algarismos)
+    function aplicarVirgulaDecimal(latex) {
+      return latex.replace(/(\d)\.(\d)/g, "$1{,}$2");
+    }
+
+    // Acha o fechamento correspondente a partir de 'inicio' (que aponta para
+    // o caractere de abertura). Devolve o indice do fechamento ou -1.
+    function acharFechamento(texto, inicio, abre, fecha) {
+      let nivel = 0;
+      for (let i = inicio; i < texto.length; i++) {
+        if (texto[i] === "\\") { i++; continue; }  // pula \{ \} \( \)
+        if (texto[i] === abre) nivel++;
+        else if (texto[i] === fecha) { nivel--; if (nivel === 0) return i; }
+      }
+      return -1;
+    }
+
+    // Acha o \right) que fecha um \left( em 'inicio' (contando \left/\right aninhados)
+    function acharRight(texto, inicio) {
+      let nivel = 0;
+      const re = /\\(left|right)(?![a-zA-Z])/g;
+      re.lastIndex = inicio;
+      let m;
+      while ((m = re.exec(texto))) {
+        if (m[1] === "left") nivel++;
+        else { nivel--; if (nivel === 0) return m.index; }
+      }
+      return -1;
+    }
+
+    // \exp(x), \exp\left(x\right), \exp{x} -> e^{x}
+    function aplicarExponencial(latex) {
+      let saida = "";
+      let i = 0;
+      const re = /\\exp(?![a-zA-Z])/g;
+      let m;
+      while ((m = re.exec(latex))) {
+        let j = m.index + m[0].length;
+        while (latex[j] === " ") j++;
+        let argumento = null, fim = -1;
+        if (latex.startsWith("\\left(", j)) {
+          const r = acharRight(latex, j);
+          if (r > 0 && latex.startsWith("\\right)", r)) {
+            argumento = latex.slice(j + 6, r);
+            fim = r + 7;
+          }
+        } else if (latex[j] === "(") {
+          const f = acharFechamento(latex, j, "(", ")");
+          if (f > 0) { argumento = latex.slice(j + 1, f); fim = f + 1; }
+        } else if (latex[j] === "{") {
+          const f = acharFechamento(latex, j, "{", "}");
+          if (f > 0) { argumento = latex.slice(j + 1, f); fim = f + 1; }
+        }
+        if (argumento === null) continue;          // \exp sem argumento claro: fica como esta
+        saida += latex.slice(i, m.index) + "e^{" + argumento.trim() + "}";
+        i = fim;
+        re.lastIndex = fim;
+      }
+      return saida + latex.slice(i);
+    }
+
+    // \sin -> \operatorname{sen}, \tan -> \operatorname{tg} (nao mexe em \sinh, \tanh)
+    function aplicarTrigonometria(latex) {
+      return latex
+        .replace(/\\sin(?![a-zA-Z])/g, "\\operatorname{sen}")
+        .replace(/\\tan(?![a-zA-Z])/g, "\\operatorname{tg}");
+    }
+
+    // ^\circ e ^{\circ} -> ^\ominus  (desligado por padrao)
+    function aplicarEstadoPadrao(latex) {
+      return latex
+        .replace(/\^\{\s*\\circ\s*\}/g, "^{\\ominus}")
+        .replace(/\^\s*\\circ(?![a-zA-Z])/g, "^\\ominus");
+    }
+
+    // Aplica as convencoes marcadas, na ordem
+    function aplicarConvencoes(latex, opcoes) {
+      let s = latex;
+      if (opcoes.exp) s = aplicarExponencial(s);
+      if (opcoes.trig) s = aplicarTrigonometria(s);
+      if (opcoes.padrao) s = aplicarEstadoPadrao(s);
+      if (opcoes.virgula) s = aplicarVirgulaDecimal(s);
+      return s;
+    }
+
+    /* =====================================================================
+       ELEMENTOS
+       ===================================================================== */
+    const $ = (id) => document.getElementById(id);
+    const areaLatex = $("latex");
+    const elStatus = $("status");
+    const listaHistorico = $("historico");
+    const avisoHistoricoVazio = $("historico-vazio");
+    let campo = null;                               // <math-field>, criado em iniciarCampo
+    let campoPronto = false;
+
+    /* =====================================================================
+       STATUS
+       ===================================================================== */
+    let temporizadorStatus = null;
+    function mostrarStatus(mensagem, ehErro = false) {
+      clearTimeout(temporizadorStatus);
+      elStatus.textContent = mensagem;
+      elStatus.classList.toggle("erro", ehErro);
+      elStatus.classList.remove("sumindo");
+      temporizadorStatus = setTimeout(() => {
+        elStatus.classList.add("sumindo");
+        temporizadorStatus = setTimeout(() => { elStatus.textContent = ""; }, 450);
+      }, ehErro ? TEMPO_ERRO_MS : TEMPO_STATUS_MS);
+    }
+
+    /* =====================================================================
+       LaTeX ATUAL E OPCOES
+       ===================================================================== */
+    function latexAtual() {
+      // O textarea e sempre a fonte da verdade (funciona mesmo sem MathLive)
+      return areaLatex.value.trim();
+    }
+
+    function opcoesAtuais() {
+      return {
+        virgula: $("op-virgula").checked,
+        exp: $("op-exp").checked,
+        trig: $("op-trig").checked,
+        padrao: $("op-padrao").checked,
+      };
+    }
+
+    function latexDeSaida() {
+      return aplicarConvencoes(latexAtual(), opcoesAtuais());
+    }
+
+    // Devolve o LaTeX de saida ou avisa que o campo esta vazio
+    function exigirEquacao() {
+      const original = latexAtual();
+      if (!original) {
+        mostrarStatus("O campo está vazio. Digite uma equação primeiro.", true);
+        return null;
+      }
+      return { original, saida: latexDeSaida() };
+    }
+
+    /* =====================================================================
+       SINCRONIA CAMPO <-> TEXTAREA (sem laco)
+       ---------------------------------------------------------------------
+       Cada lado so escreve no outro quando o evento veio do usuario. A
+       flag 'sincronizando' impede que a escrita programatica volte.
+       ===================================================================== */
+    let sincronizando = false;
+
+    function campoParaTexto() {
+      if (sincronizando || !campoPronto) return;
+      sincronizando = true;
+      areaLatex.value = campo.getValue("latex");
+      sincronizando = false;
+    }
+
+    function textoParaCampo() {
+      if (sincronizando || !campoPronto) return;
+      sincronizando = true;
+      campo.setValue(areaLatex.value, { silenceNotifications: true });
+      sincronizando = false;
+    }
+
+    function definirLatex(latex) {
+      areaLatex.value = latex;
+      textoParaCampo();
+    }
+
+    /* =====================================================================
+       AREA DE TRANSFERENCIA
+       ===================================================================== */
+    async function copiarTexto(texto) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(texto);
+          return true;
+        }
+      } catch (e) { /* cai no metodo antigo */ }
+      // Reserva: textarea temporario + execCommand (http simples, navegadores antigos)
+      const temp = document.createElement("textarea");
+      temp.value = texto;
+      temp.setAttribute("readonly", "");
+      temp.style.position = "fixed";
+      temp.style.opacity = "0";
+      document.body.appendChild(temp);
+      temp.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      temp.remove();
+      return ok;
+    }
+
+    async function copiar(texto, mensagemOk, acao, original) {
+      const ok = await copiarTexto(texto);
+      if (ok) {
+        mostrarStatus(mensagemOk);
+        registrarHistorico(original, acao);
+      } else {
+        mostrarStatus("O navegador bloqueou a cópia. Selecione o texto no campo LaTeX e use Ctrl+C.", true);
+      }
+    }
+
+    /* =====================================================================
+       MATHJAX (carregado so na primeira exportacao)
+       ===================================================================== */
+    let promessaMathJax = null;
+
+    function carregarMathJax() {
+      if (promessaMathJax) return promessaMathJax;
+      promessaMathJax = new Promise((resolver, rejeitar) => {
+        window.MathJax = {
+          loader: { load: ["[tex]/ams", "[tex]/boldsymbol", "[tex]/mathtools"] },
+          tex: { packages: { "[+]": ["ams", "boldsymbol", "mathtools"] } },
+          svg: { fontCache: "none" },               // SVG autonomo, sem <use> globais
+          startup: {
+            typeset: false,
+            ready: () => {
+              MathJax.startup.defaultReady();
+              MathJax.startup.promise.then(() => resolver(window.MathJax), rejeitar);
+            },
+          },
+        };
+        const s = document.createElement("script");
+        s.src = URL_MATHJAX;
+        s.async = true;
+        s.onerror = () => {
+          promessaMathJax = null;                    // permite tentar de novo
+          rejeitar(new Error("MathJax"));
+        };
+        document.head.appendChild(s);
+      });
+      return promessaMathJax;
+    }
+
+    function erroMathJax() {
+      mostrarStatus("Não foi possível carregar o MathJax, que gera o MathML, o SVG e o PNG. Verifique a conexão " +
+        "(ou se o site bloqueia cdn.jsdelivr.net) e tente de novo.", true);
+    }
+
+    // Converte o LaTeX em <svg> autonomo (string), pronto para arquivo
+    async function latexParaSvg(latex) {
+      const MJ = await carregarMathJax();
+      const no = await MJ.tex2svgPromise(latex, { display: true });
+      const svg = no.querySelector("svg");
+      const erro = no.querySelector("[data-mjx-error]");
+      if (erro || !svg) {
+        const msg = erro ? erro.getAttribute("data-mjx-error") : "resultado vazio";
+        throw new Error("TeX: " + msg);
+      }
+      // ex -> px, para o Inkscape e o navegador medirem igual
+      const largura = parseFloat(svg.getAttribute("width")) * PX_POR_EX;
+      const altura = parseFloat(svg.getAttribute("height")) * PX_POR_EX;
+      svg.setAttribute("width", largura.toFixed(2) + "px");
+      svg.setAttribute("height", altura.toFixed(2) + "px");
+      svg.removeAttribute("style");
+      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      svg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+      // O LaTeX vai junto, em <desc>, para saber depois de onde a figura veio
+      const desc = document.createElementNS("http://www.w3.org/2000/svg", "desc");
+      desc.textContent = latex;
+      svg.insertBefore(desc, svg.firstChild);
+      let texto = new XMLSerializer().serializeToString(svg);
+      texto = texto
+        .replace(/currentColor/g, COR_EXPORTACAO)
+        .replace(/ style=""/g, "")
+        .replace(/ aria-hidden="true"/g, "");
+      return {
+        texto: '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + texto,
+        largura,
+        altura,
+      };
+    }
+
+    // MathML completo (<math xmlns=... display="block">)
+    async function latexParaMathML(latex) {
+      try {
+        const MJ = await carregarMathJax();
+        return MJ.tex2mml(latex, { display: true });
+      } catch (e) {
+        // Reserva: MathML do MathLive, embrulhado num <math> completo
+        if (window.MathLive && MathLive.convertLatexToMathMl) {
+          const corpo = MathLive.convertLatexToMathMl(latex);
+          return '<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">' + corpo + "</math>";
+        }
+        throw e;
+      }
+    }
+
+    function baixar(blob, nome) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nome;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+
+    // Desliga o botao enquanto a exportacao roda (o MathJax pode demorar na 1a vez)
+    async function ocupado(botao, tarefa) {
+      botao.disabled = true;
+      try { await tarefa(); } finally { botao.disabled = false; }
+    }
+
+    function tratarErroExportacao(e) {
+      if (e && String(e.message).startsWith("TeX:")) {
+        mostrarStatus("O MathJax não entendeu o LaTeX (" + e.message.slice(5) +
+          "). Corrija no campo LaTeX e tente de novo.", true);
+      } else {
+        erroMathJax();
+      }
+    }
+
+    /* =====================================================================
+       ACOES DOS BOTOES
+       ===================================================================== */
+    function copiarLatex() {
+      const eq = exigirEquacao();
+      if (eq) copiar(eq.saida, "LaTeX copiado.", "LaTeX", eq.original);
+    }
+
+    function copiarEquation() {
+      const eq = exigirEquacao();
+      if (!eq) return;
+      const bloco = "\\begin{equation}\n  " + eq.saida + "\n\\end{equation}";
+      copiar(bloco, "Ambiente equation copiado.", "equation", eq.original);
+    }
+
+    function copiarMathML(botao) {
+      const eq = exigirEquacao();
+      if (!eq) return;
+      ocupado(botao, async () => {
+        try {
+          const mml = await latexParaMathML(eq.saida);
+          await copiar(mml, "MathML copiado.", "MathML", eq.original);
+        } catch (e) { tratarErroExportacao(e); }
+      });
+    }
+
+    function baixarSvg(botao) {
+      const eq = exigirEquacao();
+      if (!eq) return;
+      ocupado(botao, async () => {
+        try {
+          const svg = await latexParaSvg(eq.saida);
+          baixar(new Blob([svg.texto], { type: "image/svg+xml" }), NOME_ARQUIVO + ".svg");
+          mostrarStatus("SVG baixado.");
+          registrarHistorico(eq.original, "SVG");
+        } catch (e) { tratarErroExportacao(e); }
+      });
+    }
+
+    function baixarPng(botao) {
+      const eq = exigirEquacao();
+      if (!eq) return;
+      ocupado(botao, async () => {
+        try {
+          const svg = await latexParaSvg(eq.saida);
+          const imagem = new Image();
+          const url = URL.createObjectURL(new Blob([svg.texto], { type: "image/svg+xml" }));
+          await new Promise((ok, falha) => {
+            imagem.onload = ok;
+            imagem.onerror = () => falha(new Error("imagem"));
+            imagem.src = url;
+          });
+          const tela = document.createElement("canvas");
+          tela.width = Math.ceil(svg.largura * ESCALA_PNG);
+          tela.height = Math.ceil(svg.altura * ESCALA_PNG);
+          const ctx = tela.getContext("2d");         // fundo transparente: nao pinta nada antes
+          ctx.drawImage(imagem, 0, 0, tela.width, tela.height);
+          URL.revokeObjectURL(url);
+          const blob = await new Promise((ok) => tela.toBlob(ok, "image/png"));
+          if (!blob) throw new Error("png");
+          baixar(blob, NOME_ARQUIVO + ".png");
+          mostrarStatus("PNG baixado (" + tela.width + " × " + tela.height + " px).");
+          registrarHistorico(eq.original, "PNG");
+        } catch (e) {
+          if (e && (e.message === "imagem" || e.message === "png")) {
+            mostrarStatus("O navegador não conseguiu desenhar o PNG. Baixe o SVG e converta no Inkscape.", true);
+          } else {
+            tratarErroExportacao(e);
+          }
+        }
+      });
+    }
+
+    function limpar() {
+      definirLatex("");
+      if (campoPronto) campo.focus();
+      mostrarStatus("Campo limpo.");
+    }
+
+    /* =====================================================================
+       HISTORICO (localStorage com try/catch; a pagina funciona sem ele)
+       ===================================================================== */
+    let historicoMemoria = [];                     // usado se o localStorage falhar
+
+    function lerHistorico() {
+      try {
+        const bruto = localStorage.getItem(CHAVE_HISTORICO);
+        const lista = bruto ? JSON.parse(bruto) : [];
+        return Array.isArray(lista) ? lista : [];
+      } catch (e) {
+        return historicoMemoria;
+      }
+    }
+
+    function gravarHistorico(lista) {
+      historicoMemoria = lista;
+      try { localStorage.setItem(CHAVE_HISTORICO, JSON.stringify(lista)); } catch (e) { /* so na memoria */ }
+    }
+
+    function registrarHistorico(latex, acao) {
+      if (!latex) return;
+      // A mesma equacao sobe para o topo em vez de repetir
+      const lista = lerHistorico().filter((item) => item.latex !== latex);
+      lista.unshift({ latex, acao, quando: new Date().toISOString() });
+      gravarHistorico(lista.slice(0, TAMANHO_HISTORICO));
+      desenharHistorico();
+    }
+
+    function formatarQuando(iso) {
+      try {
+        return new Date(iso).toLocaleString("pt-BR", {
+          day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+        });
+      } catch (e) { return ""; }
+    }
+
+    function desenharHistorico() {
+      const lista = lerHistorico();
+      listaHistorico.textContent = "";
+      avisoHistoricoVazio.hidden = lista.length > 0;
+      $("btn-limpar-historico").hidden = lista.length === 0;
+      lista.forEach((item) => {
+        const li = document.createElement("li");
+        const codigo = document.createElement("code");
+        codigo.className = "h-latex";
+        codigo.textContent = item.latex;
+        const meta = document.createElement("span");
+        meta.className = "h-meta";
+        meta.textContent = (item.acao || "") + " · " + formatarQuando(item.quando);
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.textContent = "Reabrir";
+        botao.setAttribute("aria-label", "Reabrir a equação " + item.latex);
+        botao.addEventListener("click", () => {
+          definirLatex(item.latex);
+          if (campoPronto) campo.focus();
+          window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+          mostrarStatus("Equação reaberta.");
+        });
+        li.append(codigo, botao, meta);
+        listaHistorico.appendChild(li);
+      });
+    }
+
+    /* =====================================================================
+       INICIO
+       ===================================================================== */
+    function ligarEventos() {
+      $("btn-latex").addEventListener("click", copiarLatex);
+      $("btn-equation").addEventListener("click", copiarEquation);
+      $("btn-mathml").addEventListener("click", (e) => copiarMathML(e.currentTarget));
+      $("btn-svg").addEventListener("click", (e) => baixarSvg(e.currentTarget));
+      $("btn-png").addEventListener("click", (e) => baixarPng(e.currentTarget));
+      $("btn-limpar").addEventListener("click", limpar);
+      $("btn-limpar-historico").addEventListener("click", () => {
+        gravarHistorico([]);
+        desenharHistorico();
+        mostrarStatus("Histórico apagado.");
+      });
+
+      areaLatex.addEventListener("input", textoParaCampo);
+
+      // Ctrl+Enter (ou Cmd+Enter) copia o LaTeX, de qualquer lugar da pagina.
+      // Captura na janela para chegar antes do MathLive tratar o Enter.
+      window.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          copiarLatex();
+        }
+      }, true);
+    }
+
+    async function iniciarCampo() {
+      const desistir = new Promise((_, rejeitar) => setTimeout(() => rejeitar(new Error("tempo")), ESPERA_MATHLIVE_MS));
+      try {
+        if (window.__falhaMathLive) throw new Error("falha");
+        await Promise.race([customElements.whenDefined("math-field"), desistir]);
+        // As fontes precisam ser apontadas ANTES do primeiro <math-field> entrar
+        // na pagina; por isso o campo e criado aqui, e nao no HTML.
+        MathfieldElement.fontsDirectory = URL_FONTES_MATHLIVE;
+        MathfieldElement.soundsDirectory = null;     // sem cliques de teclado
+        campo = new MathfieldElement();
+        campo.id = "campo";
+        campo.setAttribute("aria-labelledby", "rotulo-campo");
+        campo.setAttribute("math-virtual-keyboard-policy", "auto");
+        $("lugar-campo").replaceChildren(campo);
+        campo.smartFence = true;
+        campo.addEventListener("input", campoParaTexto);
+        campoPronto = true;
+        if (areaLatex.value) textoParaCampo();      // texto digitado antes de carregar
+        campo.focus();
+      } catch (e) {
+        // Sem MathLive: o textarea continua valendo para copiar e exportar
+        const aviso = document.createElement("p");
+        aviso.className = "aviso-campo";
+        aviso.textContent = "Não foi possível carregar o campo visual (MathLive). Verifique a conexão ou se o site " +
+          "bloqueia cdn.jsdelivr.net. Enquanto isso, digite o LaTeX no campo abaixo: copiar e exportar continuam funcionando.";
+        $("lugar-campo").replaceChildren(aviso);
+        campo = null;
+        areaLatex.focus();
+      }
+    }
+
+    ligarEventos();
+    desenharHistorico();
+    // O MathLive e carregado com 'defer'; espera o DOM pronto para iniciar.
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", iniciarCampo);
+    } else {
+      iniciarCampo();
+    }
+  </script>
+</body>
+
+</html>

@@ -252,6 +252,16 @@ página avisa isso; o modo XYZ continua funcionando.
 
 ---
 
+### Editor de equações
+
+O **editor de equações** fica em `editor-equacoes/index.html` (endereço
+`lqtsm.com.br/editor-equacoes/`). É um arquivo único, com CSS e JavaScript
+dentro dele, que carrega o MathLive (campo visual) e o MathJax (exportação) do
+`cdn.jsdelivr.net`, com versões fixadas no próprio arquivo. Para atualizar uma
+biblioteca, troque o número da versão nas URLs (`mathlive@…` e `mathjax@…`) e
+teste antes de publicar. O histórico de equações fica no navegador de cada
+pessoa (localStorage); nada vai para o servidor.
+
 ## 4. Trocar e-mail, endereço, mapa ou menu
 
 Tudo em `dados/config.js`. O que estiver lá muda em **todas** as páginas de uma vez —

@@ -26,4 +26,11 @@ const FERRAMENTAS_ONLINE = [
       "ChemDraw, modelo 3D com estilos mistos, ligações de hidrogênio e figuras em PNG/SVG a " +
       "300, 600 ou 900 dpi. Roda no navegador, sem instalar nada.",
   },
+  {
+    titulo: "Editor de equações",
+    link: "editor-equacoes/",
+    resumo:
+      "Digite a equação visualmente e veja o LaTeX ao lado. Copie como LaTeX, ambiente equation ou MathML " +
+      "(cola no Word e no OnlyOffice) ou baixe em SVG e PNG, com vírgula decimal e sen/tg opcionais.",
+  },
 ];
