@@ -247,6 +247,7 @@
     .acoes {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.5rem;
       margin-top: 1rem;
     }
@@ -277,6 +278,15 @@
     button.discreto:hover { color: var(--erro); border-color: var(--linha); }
 
     .separador { flex: 1 1 auto; }
+    .acoes + .acoes { margin-top: 0.5rem; }
+    .grupo {
+      min-width: 4.2rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--texto-suave);
+    }
 
     /* ---------------------------------------------------------------------
        CONVENCOES
@@ -393,7 +403,8 @@
     @media (max-width: 520px) {
       .pagina { padding: 1rem 0.75rem 2.5rem; }
       math-field { font-size: 1.6rem; padding: 0.75rem; }
-      .acoes button { flex: 1 1 calc(50% - 0.5rem); }
+      .acoes button { flex: 1 1 calc(33% - 0.5rem); }
+      .grupo { flex: 1 1 100%; }
       .separador { display: none; }
       /* Teclado no celular: rotulos longos (unidades, equacoes prontas) menores
          e cortados na borda da tecla, sem invadir a vizinha */
@@ -430,7 +441,8 @@
       <button type="button" id="btn-teclado" aria-pressed="false" aria-controls="lugar-campo" hidden>
         <span aria-hidden="true">⌨</span> Teclado de símbolos</button>
       <span class="dica">Abas: básico, funções, cálculo, grego, físico-química, quântica, relações e setas,
-        matrizes e texto. Segure uma tecla para ver variantes; <kbd>⇧</kbd> troca minúsculas e maiúsculas.</span>
+        matrizes e texto. <strong>Selecione um trecho e escolha a ferramenta</strong>: a seleção vira o argumento
+        (integrando, radicando, numerador…). Segure uma tecla para ver variantes; <kbd>⇧</kbd> troca minúsculas e maiúsculas.</span>
     </div>
 
     <!-- LaTeX -->
@@ -443,12 +455,18 @@
     </div>
 
     <!-- ACOES -->
-    <div class="acoes" role="group" aria-label="Copiar e exportar">
-      <button type="button" class="principal" id="btn-latex">Copiar LaTeX</button>
-      <button type="button" id="btn-equation">Copiar como equation</button>
-      <button type="button" id="btn-mathml">Copiar MathML</button>
-      <button type="button" id="btn-svg">Baixar SVG</button>
-      <button type="button" id="btn-png">Baixar PNG</button>
+    <div class="acoes" role="group" aria-label="Copiar para a área de transferência">
+      <span class="grupo">Copiar</span>
+      <button type="button" class="principal" id="btn-latex">LaTeX</button>
+      <button type="button" id="btn-equation">equation</button>
+      <button type="button" id="btn-mathml">MathML</button>
+      <button type="button" id="btn-copiar-svg">SVG</button>
+      <button type="button" id="btn-copiar-png">PNG</button>
+    </div>
+    <div class="acoes" role="group" aria-label="Baixar arquivo">
+      <span class="grupo">Baixar</span>
+      <button type="button" id="btn-svg">SVG</button>
+      <button type="button" id="btn-png">PNG</button>
       <span class="separador"></span>
       <button type="button" class="discreto" id="btn-limpar">Limpar</button>
     </div>
@@ -509,8 +527,20 @@
          shift     o que a tecla vira com [shift] apertado
          variants  opcoes que aparecem ao segurar a tecla
          command   comando do MathLive (ex.: acrescentar linha na matriz)
-       Marcadores no LaTeX:  #@ = o que esta antes do cursor (ou a selecao),
-       #0 = a selecao, #? = uma caixinha vazia para preencher.
+         arg       (nosso) onde entra o que estiver SELECIONADO, para teclas
+                   sem caixinha propria: "antes" = a tecla vem antes da selecao
+                   (sen, ln, Delta_r, somatorio...), "depois" = a tecla vem
+                   depois (unidades, %, x10^n). Ver aplicarNaSelecao.
+       Marcadores no LaTeX:
+         #0  ARGUMENTO PRINCIPAL: recebe a selecao; sem selecao, vira caixinha
+         #@  idem, mas sem selecao pega o que esta logo antes do cursor
+             (usado em potencia, indice, acentos: 2x selecionado -> (2x)^2)
+         #?  caixinha vazia para preencher depois
+       Regra: TODA ferramenta com argumento tem #0 ou #@ no lugar onde a
+       selecao deve entrar (integrando, radicando, numerador, primeira
+       celula da matriz...). Operadores e relacoes (+, =, ->, ∈) poem a
+       selecao a esquerda; algarismos, letras e constantes substituem a
+       selecao, como digitar por cima.
        Convencoes seguidas: d e partial em redondo (\mathrm{d}), estado
        padrao com \ominus, exponencial como potencia e^{...}, descritores
        em \mathrm{}, sen/tg/arcsen em portugues.
@@ -519,18 +549,25 @@
     const SEP = { class: "separator w5" };          // meio espaco entre grupos
     const tecla = (latex, tooltip, extra = {}) => ({ latex, tooltip, ...extra });
     const peq = (latex, tooltip, extra = {}) => ({ latex, tooltip, class: PEQ, ...extra });
+    // Teclas sem caixinha que se aplicam ao que estiver selecionado
+    const antes = (k) => ({ ...k, arg: "antes" });
+    const depois = (k) => ({ ...k, arg: "depois" });
+    const binario = (k) => ({ ...k, arg: "binario" });   // selecao  OP  caixinha (2x = _)
 
     // Linha de navegacao repetida no fim de cada aba
     const NAVEGACAO = [
       "[left]", "[right]", "[up]", "[down]", SEP,
-      { label: "espaço", latex: "\\,", class: PEQ, tooltip: "Espaço fino (\\,)", width: 1.5,
+      { label: "espaço", latex: "\\,", class: PEQ, tooltip: "Espaço fino (\\,)", width: 1.5, arg: "depois",
         variants: [{ latex: "\\;", label: "médio" }, { latex: "\\quad", label: "quad" }, { latex: "\\qquad", label: "qquad" }] },
       SEP, "[backspace]", "[hide-keyboard]",
     ];
 
-    // Descritores usuais (redondos) para indices e expoentes
+    // Descritores usuais (redondos) para indices
     const DESCRITORES = ["r", "f", "c", "m", "red", "ox", "sol", "abs", "calc", "obs", "máx", "min", "eq", "vap", "fus", "sub", "ads", "SHE"]
       .map((d) => ({ latex: "#@_{\\mathrm{" + d + "}}", label: d }));
+
+    const unidade = (latex, tooltip) => depois(peq("\\," + latex, tooltip));
+    const funcao = (latex, tooltip, extra = {}) => antes(peq(latex, tooltip, extra));
 
     const ABAS_TECLADO = [
       {
@@ -539,54 +576,55 @@
           ["[7]", "[8]", "[9]", tecla("\\frac{#@}{#?}", "Fração (ou digite /)"), SEP,
             tecla("#@^{2}", "Ao quadrado"), tecla("#@^{#?}", "Potência (ou ^)"), tecla("#@_{#?}", "Índice (ou _)"),
             tecla("#@_{#?}^{#?}", "Índice e potência"), tecla("\\sqrt{#0}", "Raiz quadrada"), tecla("\\sqrt[#?]{#0}", "Raiz n-ésima")],
-          ["[4]", "[5]", "[6]", tecla("\\times", "Vezes", { variants: ["\\cdot", "\\ast", "\\star", "\\circ"] }), SEP,
-            tecla("\\cdot", "Ponto de multiplicação"), tecla("\\pm", "Mais ou menos", { variants: ["\\mp"] }),
+          ["[4]", "[5]", "[6]", binario(tecla("\\times", "Vezes", { variants: ["\\cdot", "\\ast", "\\star", "\\circ"] })), SEP,
+            binario(tecla("\\cdot", "Ponto de multiplicação")), antes(tecla("\\pm", "Mais ou menos", { variants: ["\\mp"] })),
             tecla("\\left(#0\\right)", "Parênteses"), tecla("\\left[#0\\right]", "Colchetes"),
             tecla("\\left\\lbrace #0\\right\\rbrace", "Chaves"), tecla("\\left|#0\\right|", "Módulo")],
           ["[1]", "[2]", "[3]", "[-]", SEP,
-            tecla("\\div", "Dividido"), "[=]", tecla("\\approx", "Aproximadamente"), tecla("\\neq", "Diferente"),
-            tecla("<", "Menor", { shift: "\\le" }), tecla(">", "Maior", { shift: "\\ge" })],
-          ["[0]", "[.]", peq("\\times10^{#?}", "Notação científica"), "[+]", SEP,
-            tecla("\\%", "Por cento"), tecla("#@^{-1}", "Inverso"), tecla("#@'", "Linha (derivada)"), tecla("#@!", "Fatorial"),
-            peq("\\mathrm{#?}", "Texto redondo (\\mathrm): descritores, unidades", { label: "<span style='font-family:serif'>rm</span>" }),
-            peq("\\text{#?}", "Palavra (\\text)", { label: "abc" })],
+            binario(tecla("\\div", "Dividido")), "[=]", binario(tecla("\\approx", "Aproximadamente")), binario(tecla("\\neq", "Diferente")),
+            binario(tecla("<", "Menor", { shift: binario(tecla("\\le", "Menor ou igual")) })), binario(tecla(">", "Maior", { shift: binario(tecla("\\ge", "Maior ou igual")) }))],
+          ["[0]", "[.]", depois(peq("\\times10^{#?}", "Notação científica")), "[+]", SEP,
+            depois(tecla("\\%", "Por cento")), tecla("#@^{-1}", "Inverso"), tecla("#@'", "Linha (derivada)"), tecla("#@!", "Fatorial"),
+            peq("\\mathrm{#0}", "Texto redondo (\\mathrm): descritores, unidades", { label: "<span style='font-family:serif'>rm</span>" }),
+            peq("\\text{#0}", "Palavra (\\text)", { label: "abc" })],
           NAVEGACAO,
         ],
       },
       {
         label: "f(x)", tooltip: "Funções: trigonométricas em português, log, exponencial",
         rows: [
-          [peq("\\operatorname{sen}", "Seno", { shift: peq("\\operatorname{arcsen}", "Arco-seno") }),
-            peq("\\cos", "Cosseno", { shift: peq("\\arccos", "Arco-cosseno") }),
-            peq("\\operatorname{tg}", "Tangente", { shift: peq("\\operatorname{arctg}", "Arco-tangente") }),
-            peq("\\operatorname{cotg}", "Cotangente"), peq("\\sec", "Secante"), peq("\\operatorname{cossec}", "Cossecante"), SEP,
-            peq("\\operatorname{senh}", "Seno hiperbólico"), peq("\\cosh", "Cosseno hiperbólico"), peq("\\operatorname{tgh}", "Tangente hiperbólica"), "[shift]"],
-          [peq("\\ln", "Logaritmo natural"), peq("\\log", "Logaritmo decimal"), peq("\\log_{#?}", "Logaritmo na base"),
-            tecla("e^{#?}", "Exponencial (e^x)"), tecla("10^{#?}", "Potência de 10"), SEP,
-            peq("\\ln\\left(#0\\right)", "ln( )"), peq("\\operatorname{sen}^{2}", "Seno ao quadrado"),
-            peq("\\cos^{2}", "Cosseno ao quadrado"), tecla("\\mathrm{e}", "Número de Euler (redondo)"), tecla("\\pi", "Pi")],
-          [peq("f\\left(#?\\right)", "f( )"), peq("g\\left(#?\\right)", "g( )"), peq("f^{-1}", "Inversa"), peq("f\\circ g", "Composta"), SEP,
-            peq("\\max", "Máximo"), peq("\\min", "Mínimo"), peq("\\lfloor #0\\rfloor", "Piso"), peq("\\lceil #0\\rceil", "Teto"),
-            peq("\\binom{#?}{#?}", "Binomial"), peq("\\operatorname{#?}", "Nome de função qualquer")],
+          [funcao("\\operatorname{sen}", "Seno", { shift: funcao("\\operatorname{arcsen}", "Arco-seno") }),
+            funcao("\\cos", "Cosseno", { shift: funcao("\\arccos", "Arco-cosseno") }),
+            funcao("\\operatorname{tg}", "Tangente", { shift: funcao("\\operatorname{arctg}", "Arco-tangente") }),
+            funcao("\\operatorname{cotg}", "Cotangente"), funcao("\\sec", "Secante"), funcao("\\operatorname{cossec}", "Cossecante"), SEP,
+            funcao("\\operatorname{senh}", "Seno hiperbólico"), funcao("\\cosh", "Cosseno hiperbólico"), funcao("\\operatorname{tgh}", "Tangente hiperbólica"), "[shift]"],
+          [funcao("\\ln", "Logaritmo natural"), funcao("\\log", "Logaritmo decimal"), funcao("\\log_{#?}", "Logaritmo na base"),
+            tecla("e^{#0}", "Exponencial (e^x)"), tecla("10^{#0}", "Potência de 10"), SEP,
+            peq("\\ln\\left(#0\\right)", "ln( )"), funcao("\\operatorname{sen}^{2}", "Seno ao quadrado"),
+            funcao("\\cos^{2}", "Cosseno ao quadrado"), tecla("\\mathrm{e}", "Número de Euler (redondo)"), tecla("\\pi", "Pi")],
+          [peq("f\\left(#0\\right)", "f( )"), peq("g\\left(#0\\right)", "g( )"), peq("f^{-1}", "Inversa"), peq("f\\circ g", "Composta"), SEP,
+            funcao("\\max", "Máximo"), funcao("\\min", "Mínimo"), peq("\\lfloor #0\\rfloor", "Piso"), peq("\\lceil #0\\rceil", "Teto"),
+            peq("\\binom{#0}{#?}", "Binomial"), funcao("\\operatorname{#?}", "Nome de função qualquer")],
           NAVEGACAO,
         ],
       },
       {
         label: "∫ d", tooltip: "Cálculo: derivadas, integrais, somatórios, operadores vetoriais",
         rows: [
-          [peq("\\frac{\\mathrm{d}#?}{\\mathrm{d}#?}", "Derivada"), peq("\\frac{\\mathrm{d}^{2}#?}{\\mathrm{d}#?^{2}}", "Derivada segunda"),
-            peq("\\frac{\\partial #?}{\\partial #?}", "Derivada parcial"), peq("\\frac{\\partial^{2}#?}{\\partial #?^{2}}", "Parcial segunda"),
-            peq("\\frac{\\partial^{2}#?}{\\partial #?\\,\\partial #?}", "Parcial mista"),
-            peq("\\left(\\frac{\\partial #?}{\\partial #?}\\right)_{#?}", "Parcial com variável constante (termodinâmica)"), SEP,
-            tecla("\\mathrm{d}", "d redondo (diferencial)"), tecla("\\partial", "Parcial"), tecla("\\delta", "Variação infinitesimal"), tecla("\\Delta", "Variação")],
-          [peq("\\int #?\\,\\mathrm{d}#?", "Integral indefinida"), peq("\\int_{#?}^{#?}#?\\,\\mathrm{d}#?", "Integral definida"),
-            peq("\\iint #?\\,\\mathrm{d}#?\\,\\mathrm{d}#?", "Integral dupla"), peq("\\iiint #?\\,\\mathrm{d}#?\\,\\mathrm{d}#?\\,\\mathrm{d}#?", "Integral tripla"),
-            peq("\\oint #?\\,\\mathrm{d}#?", "Integral de linha fechada"), peq("\\left.#0\\right|_{#?}^{#?}", "Avaliar entre limites"), SEP,
-            peq("\\sum_{#?}^{#?}", "Somatório"), peq("\\sum_{#?=#?}^{\\infty}", "Série"), peq("\\prod_{#?}^{#?}", "Produtório"),
-            peq("\\lim_{#?\\to #?}", "Limite")],
-          [tecla("\\nabla", "Nabla (gradiente)"), peq("\\nabla^{2}", "Laplaciano"), peq("\\nabla\\cdot", "Divergente"), peq("\\nabla\\times", "Rotacional"), SEP,
+          [peq("\\frac{\\mathrm{d}#0}{\\mathrm{d}#?}", "Derivada"), peq("\\frac{\\mathrm{d}^{2}#0}{\\mathrm{d}#?^{2}}", "Derivada segunda"),
+            peq("\\frac{\\partial #0}{\\partial #?}", "Derivada parcial"), peq("\\frac{\\partial^{2}#0}{\\partial #?^{2}}", "Parcial segunda"),
+            peq("\\frac{\\partial^{2}#0}{\\partial #?\\,\\partial #?}", "Parcial mista"),
+            peq("\\left(\\frac{\\partial #0}{\\partial #?}\\right)_{#?}", "Parcial com variável constante (termodinâmica)"), SEP,
+            antes(tecla("\\mathrm{d}", "d redondo (diferencial)")), antes(tecla("\\partial", "Parcial")),
+            antes(tecla("\\delta", "Variação infinitesimal")), antes(tecla("\\Delta", "Variação"))],
+          [peq("\\int #0\\,\\mathrm{d}#?", "Integral indefinida"), peq("\\int_{#?}^{#?}#0\\,\\mathrm{d}#?", "Integral definida"),
+            peq("\\iint #0\\,\\mathrm{d}#?\\,\\mathrm{d}#?", "Integral dupla"), peq("\\iiint #0\\,\\mathrm{d}#?\\,\\mathrm{d}#?\\,\\mathrm{d}#?", "Integral tripla"),
+            peq("\\oint #0\\,\\mathrm{d}#?", "Integral de linha fechada"), peq("\\left.#0\\right|_{#?}^{#?}", "Avaliar entre limites"), SEP,
+            funcao("\\sum_{#?}^{#?}", "Somatório"), funcao("\\sum_{#?=#?}^{\\infty}", "Série"), funcao("\\prod_{#?}^{#?}", "Produtório"),
+            funcao("\\lim_{#?\\to #?}", "Limite")],
+          [antes(tecla("\\nabla", "Nabla (gradiente)")), funcao("\\nabla^{2}", "Laplaciano"), funcao("\\nabla\\cdot", "Divergente"), funcao("\\nabla\\times", "Rotacional"), SEP,
             tecla("\\dot{#@}", "Derivada temporal"), tecla("\\ddot{#@}", "Derivada temporal segunda"), tecla("#@''", "Duas linhas"),
-            tecla("\\infty", "Infinito"), tecla("\\to", "Tende a"), peq("\\mathrm{d}#?", "Diferencial dx")],
+            tecla("\\infty", "Infinito"), binario(tecla("\\to", "Tende a")), peq("\\mathrm{d}#0", "Diferencial dx")],
           NAVEGACAO,
         ],
       },
@@ -608,17 +646,17 @@
       {
         label: "ΔG<sup>⊖</sup>", tooltip: "Físico-química: estado padrão, descritores, constantes, unidades e equações prontas",
         rows: [
-          [tecla("#@^{\\ominus}", "Estado padrão (⊖)"), peq("\\Delta_{\\mathrm{r}}", "Δ de reação"), peq("\\Delta_{\\mathrm{f}}", "Δ de formação"),
-            peq("\\Delta_{\\mathrm{c}}", "Δ de combustão"), peq("\\Delta_{\\mathrm{vap}}", "Δ de vaporização"), peq("\\Delta_{\\mathrm{fus}}", "Δ de fusão"),
-            peq("\\Delta_{\\mathrm{sol}}", "Δ de solvatação"),
+          [tecla("#@^{\\ominus}", "Estado padrão (⊖)"), funcao("\\Delta_{\\mathrm{r}}", "Δ de reação"), funcao("\\Delta_{\\mathrm{f}}", "Δ de formação"),
+            funcao("\\Delta_{\\mathrm{c}}", "Δ de combustão"), funcao("\\Delta_{\\mathrm{vap}}", "Δ de vaporização"), funcao("\\Delta_{\\mathrm{fus}}", "Δ de fusão"),
+            funcao("\\Delta_{\\mathrm{sol}}", "Δ de solvatação"),
             peq("#@_{\\mathrm{#?}}", "Índice redondo (segure: red, ox, sol...)", { variants: DESCRITORES }),
             tecla("#@_{\\mathrm{m}}", "Grandeza molar"), tecla("#@^{\\ddagger}", "Estado de transição (‡)")],
           [tecla("R", "Constante dos gases"), peq("k_{\\mathrm{B}}", "Constante de Boltzmann"), peq("N_{\\mathrm{A}}", "Constante de Avogadro"),
             tecla("F", "Constante de Faraday"), tecla("h", "Constante de Planck"), tecla("\\hbar"), peq("p^{\\ominus}", "Pressão padrão"),
-            peq("\\left[#?\\right]", "Concentração [ ]"), peq("a_{#?}", "Atividade"), tecla("\\rightleftharpoons", "Equilíbrio")],
-          [peq("\\,\\mathrm{K}", "kelvin"), peq("\\,\\mathrm{V}", "volt"), peq("\\,\\mathrm{kJ\\,mol^{-1}}", "kJ/mol"), peq("\\,\\mathrm{kcal\\,mol^{-1}}", "kcal/mol"),
-            peq("\\,\\mathrm{J\\,K^{-1}\\,mol^{-1}}", "J/(K mol)"), peq("\\,\\mathrm{mol\\,L^{-1}}", "mol/L"), peq("\\,\\mathrm{bar}", "bar"),
-            peq("\\,\\mathrm{eV}", "elétron-volt"), peq("\\,\\mathrm{cm^{-1}}", "número de onda"), peq("\\,\\text{Å}", "ångström")],
+            peq("\\left[#0\\right]", "Concentração [ ]"), peq("a_{#0}", "Atividade"), tecla("\\rightleftharpoons", "Equilíbrio")],
+          [unidade("\\mathrm{K}", "kelvin"), unidade("\\mathrm{V}", "volt"), unidade("\\mathrm{kJ\\,mol^{-1}}", "kJ/mol"), unidade("\\mathrm{kcal\\,mol^{-1}}", "kcal/mol"),
+            unidade("\\mathrm{J\\,K^{-1}\\,mol^{-1}}", "J/(K mol)"), unidade("\\mathrm{mol\\,L^{-1}}", "mol/L"), unidade("\\mathrm{bar}", "bar"),
+            unidade("\\mathrm{eV}", "elétron-volt"), unidade("\\mathrm{cm^{-1}}", "número de onda"), unidade("\\text{Å}", "ångström")],
           [{ label: "ΔG = −RT ln K", latex: "\\Delta_{\\mathrm{r}}G^{\\ominus}=-RT\\ln K", class: PEQ, width: 2, tooltip: "Energia de Gibbs padrão e constante de equilíbrio" },
             { label: "ΔG = ΔH − TΔS", latex: "\\Delta G=\\Delta H-T\\Delta S", class: PEQ, width: 2, tooltip: "Gibbs-Helmholtz (forma integrada)" },
             { label: "ΔG = −nFE", latex: "\\Delta_{\\mathrm{r}}G^{\\ominus}=-nFE^{\\ominus}", class: PEQ, width: 2, tooltip: "Gibbs e potencial padrão" },
@@ -634,13 +672,13 @@
           [tecla("\\vec{#@}", "Vetor"), tecla("\\hat{#@}", "Operador / versor"), tecla("\\bar{#@}", "Barra"), tecla("\\tilde{#@}", "Til"),
             tecla("\\overline{#@}", "Média / conjugado"), tecla("\\boldsymbol{#@}", "Negrito (vetor)"), SEP,
             tecla("#@^{\\dagger}", "Adjunto (†)"), tecla("#@^{*}", "Complexo conjugado"), tecla("#@^{\\mathrm{T}}", "Transposta")],
-          [peq("|#?\\rangle", "Ket"), peq("\\langle #?|", "Bra"), peq("\\langle #?|#?\\rangle", "Braket"), peq("\\langle #?|#?|#?\\rangle", "Elemento de matriz"),
-            peq("\\langle #?\\rangle", "Valor esperado"), peq("\\left[#?,#?\\right]", "Comutador"), SEP,
-            tecla("\\otimes", "Produto tensorial"), tecla("\\oplus", "Soma direta"), peq("\\left\\Vert #?\\right\\Vert", "Norma")],
+          [peq("|#0\\rangle", "Ket"), peq("\\langle #0|", "Bra"), peq("\\langle #0|#?\\rangle", "Braket"), peq("\\langle #?|#0|#?\\rangle", "Elemento de matriz (operador no meio)"),
+            peq("\\langle #0\\rangle", "Valor esperado"), peq("\\left[#0,#?\\right]", "Comutador"), SEP,
+            binario(tecla("\\otimes", "Produto tensorial")), binario(tecla("\\oplus", "Soma direta")), peq("\\left\\Vert #0\\right\\Vert", "Norma")],
           [tecla("\\hbar"), tecla("\\psi", "", { shift: "\\Psi" }), tecla("\\phi", "", { shift: "\\Phi" }), peq("\\hat{H}", "Hamiltoniano"),
             peq("\\hat{H}\\psi=E\\psi", "Equação de Schrödinger independente do tempo"),
             peq("\\mathrm{i}\\hbar\\frac{\\partial\\Psi}{\\partial t}=\\hat{H}\\Psi", "Equação de Schrödinger dependente do tempo"),
-            peq("-\\frac{\\hbar^{2}}{2m}\\nabla^{2}", "Energia cinética"), tecla("\\mathrm{i}", "Unidade imaginária (redonda)"),
+            funcao("-\\frac{\\hbar^{2}}{2m}\\nabla^{2}", "Energia cinética"), tecla("\\mathrm{i}", "Unidade imaginária (redonda)"),
             peq("\\delta_{#?#?}", "Delta de Kronecker"), "[shift]"],
           NAVEGACAO,
         ],
@@ -651,43 +689,108 @@
           [tecla("\\equiv", "Idêntico / definido"), tecla("\\approx"), tecla("\\simeq"), tecla("\\sim"), tecla("\\propto", "Proporcional"),
             tecla("\\neq"), tecla("\\ll"), tecla("\\gg"), tecla("\\le"), tecla("\\ge")],
           [tecla("\\rightarrow", "Seta (reação)"), tecla("\\leftarrow"), tecla("\\leftrightarrow"), tecla("\\rightleftharpoons", "Equilíbrio"),
-            tecla("\\Rightarrow", "Implica"), tecla("\\Leftrightarrow", "Se e somente se"), tecla("\\uparrow", "Gás"), tecla("\\downarrow", "Precipitado"),
-            peq("\\xrightarrow{#?}", "Seta com condição"), tecla("\\mapsto")],
+            tecla("\\Rightarrow", "Implica"), tecla("\\Leftrightarrow", "Se e somente se"), depois(tecla("\\uparrow", "Gás")), depois(tecla("\\downarrow", "Precipitado")),
+            peq("\\xrightarrow{#0}", "Seta com condição (a seleção vai em cima)"), tecla("\\mapsto")],
           [tecla("\\in"), tecla("\\notin"), tecla("\\subset"), tecla("\\subseteq"), tecla("\\cup"), tecla("\\cap"),
-            tecla("\\forall"), tecla("\\exists"), tecla("\\therefore", "Portanto"), tecla("\\because", "Porque")],
-          [tecla("#@^{\\circ}", "Grau (ângulo)"), tecla("\\angle", "Ângulo"), tecla("\\perp", "Perpendicular"), tecla("\\parallel", "Paralelo"),
-            tecla("\\cdots"), tecla("\\ldots"), tecla("\\vdots"), tecla("\\ddots"), tecla("\\neg"), tecla("\\land", "", { variants: ["\\lor"] })],
+            antes(tecla("\\forall")), antes(tecla("\\exists")), antes(tecla("\\therefore", "Portanto")), antes(tecla("\\because", "Porque"))],
+          [tecla("#@^{\\circ}", "Grau (ângulo)"), antes(tecla("\\angle", "Ângulo")), tecla("\\perp", "Perpendicular"), tecla("\\parallel", "Paralelo"),
+            depois(tecla("\\cdots")), depois(tecla("\\ldots")), depois(tecla("\\vdots")), depois(tecla("\\ddots")), antes(tecla("\\neg")), binario(tecla("\\land", "", { variants: [binario(tecla("\\lor"))] }))],
           NAVEGACAO,
         ],
       },
       {
         label: "[ ]", tooltip: "Matrizes, casos e estrutura (+linha e +coluna dentro da matriz)",
         rows: [
-          [peq("\\begin{pmatrix}#?&#?\\\\#?&#?\\end{pmatrix}", "Matriz 2×2 ( )"),
-            peq("\\begin{pmatrix}#?&#?&#?\\\\#?&#?&#?\\\\#?&#?&#?\\end{pmatrix}", "Matriz 3×3 ( )"),
-            peq("\\begin{bmatrix}#?&#?\\\\#?&#?\\end{bmatrix}", "Matriz 2×2 [ ]"),
-            peq("\\begin{vmatrix}#?&#?\\\\#?&#?\\end{vmatrix}", "Determinante 2×2"),
-            peq("\\begin{vmatrix}#?&#?&#?\\\\#?&#?&#?\\\\#?&#?&#?\\end{vmatrix}", "Determinante 3×3"),
-            peq("\\begin{pmatrix}#?\\\\#?\\\\#?\\end{pmatrix}", "Vetor coluna"),
-            peq("\\begin{cases}#?&#?\\\\#?&#?\\end{cases}", "Casos (função por partes)")],
+          [peq("\\begin{pmatrix}#0&#?\\\\#?&#?\\end{pmatrix}", "Matriz 2×2 ( )"),
+            peq("\\begin{pmatrix}#0&#?&#?\\\\#?&#?&#?\\\\#?&#?&#?\\end{pmatrix}", "Matriz 3×3 ( )"),
+            peq("\\begin{bmatrix}#0&#?\\\\#?&#?\\end{bmatrix}", "Matriz 2×2 [ ]"),
+            peq("\\begin{vmatrix}#0&#?\\\\#?&#?\\end{vmatrix}", "Determinante 2×2"),
+            peq("\\begin{vmatrix}#0&#?&#?\\\\#?&#?&#?\\\\#?&#?&#?\\end{vmatrix}", "Determinante 3×3"),
+            peq("\\begin{pmatrix}#0\\\\#?\\\\#?\\end{pmatrix}", "Vetor coluna"),
+            peq("\\begin{cases}#0&#?\\\\#?&#?\\end{cases}", "Casos (função por partes)")],
           [{ label: "+ linha", command: ["addRowAfter"], class: PEQ, tooltip: "Acrescentar linha na matriz" },
             { label: "+ coluna", command: ["addColumnAfter"], class: PEQ, tooltip: "Acrescentar coluna na matriz" },
             { label: "− linha", command: ["removeRow"], class: PEQ, tooltip: "Remover a linha do cursor" },
             { label: "− coluna", command: ["removeColumn"], class: PEQ, tooltip: "Remover a coluna do cursor" }, SEP,
             peq("\\underbrace{#@}_{#?}", "Chave por baixo"), peq("\\overbrace{#@}^{#?}", "Chave por cima"),
             peq("\\overset{#?}{#@}", "Símbolo em cima"), peq("\\underset{#?}{#@}", "Símbolo embaixo"), peq("\\boxed{#@}", "Caixa")],
-          [peq("\\mathrm{#?}", "Texto redondo", { label: "<span style='font-family:serif'>rm</span>" }),
-            peq("\\text{#?}", "Palavra", { label: "abc" }),
-            peq("\\mathbf{#?}", "Negrito", { label: "<b style='font-family:serif'>B</b>" }),
-            peq("\\mathit{#?}", "Itálico", { label: "<i style='font-family:serif'>I</i>" }),
-            peq("\\mathcal{#?}", "Caligráfico", { label: "𝒞" }), peq("\\mathbb{#?}", "Conjuntos (ℝ, ℂ)", { label: "ℝ" }), SEP,
-            peq("\\quad", "Espaço largo", { label: "quad" }), peq("\\,", "Espaço fino", { label: "\\," }),
-            peq("\\;", "Espaço médio", { label: "\\;" }), peq("\\!", "Espaço negativo", { label: "\\!" })],
+          [peq("\\mathrm{#0}", "Texto redondo", { label: "<span style='font-family:serif'>rm</span>" }),
+            peq("\\text{#0}", "Palavra", { label: "abc" }),
+            peq("\\mathbf{#0}", "Negrito", { label: "<b style='font-family:serif'>B</b>" }),
+            peq("\\mathit{#0}", "Itálico", { label: "<i style='font-family:serif'>I</i>" }),
+            peq("\\mathcal{#0}", "Caligráfico", { label: "𝒞" }), peq("\\mathbb{#0}", "Conjuntos (ℝ, ℂ)", { label: "ℝ" }), SEP,
+            depois(peq("\\quad", "Espaço largo", { label: "quad" })), depois(peq("\\,", "Espaço fino", { label: "\\," })),
+            depois(peq("\\;", "Espaço médio", { label: "\\;" })), depois(peq("\\!", "Espaço negativo", { label: "\\!" }))],
           NAVEGACAO,
         ],
       },
       "alphabetic",
     ];
+
+    /* ---------------------------------------------------------------------
+       SELECAO -> ARGUMENTO
+       ---------------------------------------------------------------------
+       O MathLive avisa (evento beforeinput, cancelavel) o LaTeX que uma tecla
+       vai inserir. Quando ha algo selecionado, decidimos aqui onde a selecao
+       entra, para que NENHUMA ferramenta apague o que foi selecionado:
+         1. tecla com #0 ou #@ ........ o proprio MathLive coloca a selecao ali
+         2. tecla marcada "antes" ..... insere  tecla + selecao   (sen 2x)
+         3. tecla marcada "depois" .... insere  selecao + tecla   (300 K)
+            tecla marcada "binario" ... selecao + operador + caixinha (2x = _)
+         4. qualquer outra com #? ..... a selecao vai na 1a caixinha (rede de
+                                         seguranca para teclas novas)
+         5. o resto (algarismos, letras gregas, constantes, equacoes
+            prontas) substitui a selecao, como digitar por cima
+       --------------------------------------------------------------------- */
+    const MODO_DA_TECLA = new Map();                 // latex -> "antes" | "depois"
+    (function mapearModos() {
+      const visitar = (k) => {
+        if (!k || typeof k !== "object") return;
+        if (k.arg && k.latex) MODO_DA_TECLA.set(k.latex, k.arg);
+        if (k.shift) visitar(k.shift);
+        if (Array.isArray(k.variants)) k.variants.forEach(visitar);
+      };
+      ABAS_TECLADO.forEach((aba) => aba.rows && aba.rows.forEach((linha) => linha.forEach(visitar)));
+      // Operadores e relacoes (inclui as teclas padrao [+], [-], [=]):
+      // a selecao fica a esquerda e sobra uma caixinha a direita
+      const BINARIOS = ["+", "-", "=", "<", ">", "\\times", "\\cdot", "\\div", "\\approx", "\\neq", "\\le", "\\ge",
+        "\\equiv", "\\simeq", "\\sim", "\\propto", "\\ll", "\\gg", "\\rightarrow", "\\leftarrow", "\\leftrightarrow",
+        "\\rightleftharpoons", "\\Rightarrow", "\\Leftrightarrow", "\\mapsto", "\\to", "\\in", "\\notin", "\\subset",
+        "\\subseteq", "\\cup", "\\cap", "\\perp", "\\parallel", "\\land", "\\lor", "\\otimes", "\\oplus", "\\ast", "\\star", "\\circ"];
+      // Prefixos (vem antes da selecao) e sufixos (vem depois)
+      const PREFIXOS = ["\\pm", "\\mp", "\\forall", "\\exists", "\\neg", "\\therefore", "\\because", "\\angle"];
+      const SUFIXOS = ["\\uparrow", "\\downarrow", "\\cdots", "\\ldots", "\\vdots", "\\ddots", "\\,", "\\;", "\\quad", "\\qquad", "\\!"];
+      const marcar = (lista, modo) => lista.forEach((l) => { if (!MODO_DA_TECLA.has(l)) MODO_DA_TECLA.set(l, modo); });
+      marcar(BINARIOS, "binario");
+      marcar(PREFIXOS, "antes");
+      marcar(SUFIXOS, "depois");
+    })();
+
+    // Devolve o LaTeX a inserir no lugar da selecao, ou null (deixa o MathLive agir)
+    function moldeComSelecao(latex) {
+      if (/#0|#@/.test(latex)) return null;                       // regra 1
+      const modo = MODO_DA_TECLA.get(latex);
+      if (modo === "antes") return latex + "#0";                    // regra 2
+      if (modo === "depois") return "#0" + latex;                   // regra 3
+      if (modo === "binario") return "#0" + latex + "#?";           // regra 3b: 2x = _
+      if (latex.includes("#?")) return latex.replace("#?", "#0");   // regra 4
+      return null;                                                  // regra 5
+    }
+
+    let reinserindo = false;
+    function aplicarNaSelecao(evento) {
+      if (reinserindo || evento.inputType !== "insertText" || !evento.data) return;
+      if (!campo || campo.selectionIsCollapsed) return;
+      const molde = moldeComSelecao(evento.data);
+      if (!molde) return;
+      evento.preventDefault();
+      reinserindo = true;
+      try {
+        campo.executeCommand(["insert", molde, { selectionMode: "placeholder", format: "latex" }]);
+      } finally {
+        reinserindo = false;
+      }
+    }
 
     // Aplica as abas e liga o botao da pagina. O botao so aparece com o
     // MathLive carregado; no celular o teclado tambem abre sozinho ao tocar.
@@ -857,8 +960,19 @@
       };
     }
 
+    // O MathLive escreve \operatorname{\mathrm{sen}}; volta para \operatorname{sen}
+    function limparLatexDoCampo(latex) {
+      return latex.replace(/\\operatorname\{\\mathrm\{([^{}]*)\}\}/g, "\\operatorname{$1}");
+    }
+
+    // Caixinhas vazias do MathLive (\placeholder{}) nao existem no LaTeX
+    // padrao: na saida viram grupo vazio {}.
+    function removerCaixinhas(latex) {
+      return latex.replace(/\\placeholder(\[[^\]]*\])?\{[^{}]*\}/g, "{}");
+    }
+
     function latexDeSaida() {
-      return aplicarConvencoes(latexAtual(), opcoesAtuais());
+      return aplicarConvencoes(removerCaixinhas(latexAtual()), opcoesAtuais());
     }
 
     // Devolve o LaTeX de saida ou avisa que o campo esta vazio
@@ -882,7 +996,7 @@
     function campoParaTexto() {
       if (sincronizando || !campoPronto) return;
       sincronizando = true;
-      areaLatex.value = campo.getValue("latex");
+      areaLatex.value = limparLatexDoCampo(campo.getValue("latex"));
       sincronizando = false;
     }
 
@@ -1069,6 +1183,46 @@
       });
     }
 
+    // Gera o PNG (fundo transparente, ESCALA_PNG x) a partir do SVG do MathJax
+    async function latexParaPng(latex) {
+      const svg = await latexParaSvg(latex);
+      const imagem = new Image();
+      const url = URL.createObjectURL(new Blob([svg.texto], { type: "image/svg+xml" }));
+      try {
+        await new Promise((ok, falha) => {
+          imagem.onload = ok;
+          imagem.onerror = () => falha(new Error("imagem"));
+          imagem.src = url;
+        });
+        const tela = document.createElement("canvas");
+        tela.width = Math.ceil(svg.largura * ESCALA_PNG);
+        tela.height = Math.ceil(svg.altura * ESCALA_PNG);
+        const ctx = tela.getContext("2d");           // fundo transparente: nao pinta nada antes
+        ctx.drawImage(imagem, 0, 0, tela.width, tela.height);
+        const blob = await new Promise((ok) => tela.toBlob(ok, "image/png"));
+        if (!blob) throw new Error("png");
+        return { blob, largura: tela.width, altura: tela.height };
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function tratarErroImagem(e) {
+      if (e && (e.message === "imagem" || e.message === "png")) {
+        mostrarStatus("O navegador não conseguiu desenhar o PNG. Use o SVG e converta no Inkscape.", true);
+      } else {
+        tratarErroExportacao(e);
+      }
+    }
+
+    // Copiar imagem exige https (ou localhost) e a API ClipboardItem
+    function podeCopiarImagem() {
+      return !!(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write && window.isSecureContext);
+    }
+    function suportaTipo(tipo) {
+      try { return !ClipboardItem.supports || ClipboardItem.supports(tipo); } catch (e) { return false; }
+    }
+
     function baixarSvg(botao) {
       const eq = exigirEquacao();
       if (!eq) return;
@@ -1077,7 +1231,7 @@
           const svg = await latexParaSvg(eq.saida);
           baixar(new Blob([svg.texto], { type: "image/svg+xml" }), NOME_ARQUIVO + ".svg");
           mostrarStatus("SVG baixado.");
-          registrarHistorico(eq.original, "SVG");
+          registrarHistorico(eq.original, "SVG baixado");
         } catch (e) { tratarErroExportacao(e); }
       });
     }
@@ -1087,31 +1241,65 @@
       if (!eq) return;
       ocupado(botao, async () => {
         try {
-          const svg = await latexParaSvg(eq.saida);
-          const imagem = new Image();
-          const url = URL.createObjectURL(new Blob([svg.texto], { type: "image/svg+xml" }));
-          await new Promise((ok, falha) => {
-            imagem.onload = ok;
-            imagem.onerror = () => falha(new Error("imagem"));
-            imagem.src = url;
-          });
-          const tela = document.createElement("canvas");
-          tela.width = Math.ceil(svg.largura * ESCALA_PNG);
-          tela.height = Math.ceil(svg.altura * ESCALA_PNG);
-          const ctx = tela.getContext("2d");         // fundo transparente: nao pinta nada antes
-          ctx.drawImage(imagem, 0, 0, tela.width, tela.height);
-          URL.revokeObjectURL(url);
-          const blob = await new Promise((ok) => tela.toBlob(ok, "image/png"));
-          if (!blob) throw new Error("png");
-          baixar(blob, NOME_ARQUIVO + ".png");
-          mostrarStatus("PNG baixado (" + tela.width + " × " + tela.height + " px).");
-          registrarHistorico(eq.original, "PNG");
+          const png = await latexParaPng(eq.saida);
+          baixar(png.blob, NOME_ARQUIVO + ".png");
+          mostrarStatus("PNG baixado (" + png.largura + " × " + png.altura + " px).");
+          registrarHistorico(eq.original, "PNG baixado");
+        } catch (e) { tratarErroImagem(e); }
+      });
+    }
+
+    // IMPORTANTE: navigator.clipboard.write precisa ser chamado ainda dentro do
+    // clique (antes de qualquer await), senao o Safari recusa. Por isso o
+    // ClipboardItem recebe PROMESSAS que o MathJax resolve depois.
+    function copiarPng(botao) {
+      const eq = exigirEquacao();
+      if (!eq) return;
+      if (!podeCopiarImagem() || !suportaTipo("image/png")) {
+        mostrarStatus("Este navegador não copia imagens para a área de transferência (ou a página não está em https). Use Baixar PNG.", true);
+        return;
+      }
+      ocupado(botao, async () => {
+        let dimensoes = "";
+        const promessa = latexParaPng(eq.saida).then((png) => {
+          dimensoes = png.largura + " × " + png.altura + " px";
+          return png.blob;
+        });
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": promessa })]);
+          mostrarStatus("PNG copiado (" + dimensoes + "). Cole no Word, PowerPoint, Inkscape ou no chat.");
+          registrarHistorico(eq.original, "PNG copiado");
         } catch (e) {
-          if (e && (e.message === "imagem" || e.message === "png")) {
-            mostrarStatus("O navegador não conseguiu desenhar o PNG. Baixe o SVG e converta no Inkscape.", true);
+          try { await promessa; } catch (erroGeracao) { tratarErroImagem(erroGeracao); return; }
+          mostrarStatus("O navegador não deixou copiar a imagem. Use Baixar PNG.", true);
+        }
+      });
+    }
+
+    // SVG vai como imagem (image/svg+xml, Chrome/Edge recentes) e tambem como
+    // texto: o Inkscape cola o codigo SVG como desenho editavel.
+    function copiarSvg(botao) {
+      const eq = exigirEquacao();
+      if (!eq) return;
+      ocupado(botao, async () => {
+        const promessa = latexParaSvg(eq.saida);
+        const comoTexto = () => promessa.then((svg) => new Blob([svg.texto], { type: "text/plain" }));
+        try {
+          if (podeCopiarImagem()) {
+            const itens = { "text/plain": comoTexto() };
+            if (suportaTipo("image/svg+xml") && ClipboardItem.supports) {
+              itens["image/svg+xml"] = promessa.then((svg) => new Blob([svg.texto], { type: "image/svg+xml" }));
+            }
+            await navigator.clipboard.write([new ClipboardItem(itens)]);
           } else {
-            tratarErroExportacao(e);
+            const svg = await promessa;
+            if (!(await copiarTexto(svg.texto))) throw new Error("copia");
           }
+          mostrarStatus("SVG copiado. No Inkscape, Ctrl+V cola como desenho editável.");
+          registrarHistorico(eq.original, "SVG copiado");
+        } catch (e) {
+          try { await promessa; } catch (erroGeracao) { tratarErroExportacao(erroGeracao); return; }
+          mostrarStatus("O navegador não deixou copiar o SVG. Use Baixar SVG.", true);
         }
       });
     }
@@ -1196,6 +1384,8 @@
       $("btn-mathml").addEventListener("click", (e) => copiarMathML(e.currentTarget));
       $("btn-svg").addEventListener("click", (e) => baixarSvg(e.currentTarget));
       $("btn-png").addEventListener("click", (e) => baixarPng(e.currentTarget));
+      $("btn-copiar-svg").addEventListener("click", (e) => copiarSvg(e.currentTarget));
+      $("btn-copiar-png").addEventListener("click", (e) => copiarPng(e.currentTarget));
       $("btn-limpar").addEventListener("click", limpar);
       $("btn-limpar-historico").addEventListener("click", () => {
         gravarHistorico([]);
@@ -1232,6 +1422,7 @@
         $("lugar-campo").replaceChildren(campo);
         campo.smartFence = true;
         campo.addEventListener("input", campoParaTexto);
+        campo.addEventListener("beforeinput", aplicarNaSelecao);   // selecao vira argumento
         campoPronto = true;
         configurarTeclado();
         if (areaLatex.value) textoParaCampo();      // texto digitado antes de carregar
