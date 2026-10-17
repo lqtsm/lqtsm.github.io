@@ -36,7 +36,7 @@
   8. Cor: \textcolor com nomes do xcolor (red, blue, green, orange, purple,
      teal, magenta), que o MathLive e o LaTeX entendem; no SVG/PNG esses
      nomes viram os tons da paleta da pagina (CORES).
-  9. Ferramentas recentes: as 10 ultimas teclas do teclado virtual ficam na
+  9. Ferramentas recentes: as 30 ultimas teclas do teclado virtual ficam na
      barra "Recentes" sob o campo e, quando o teclado abre de novo, na
      primeira linha de cada aba (o MathLive nao redesenha abas abertas).
   ==========================================================================
@@ -77,8 +77,10 @@
       color-scheme: light;
     }
 
+    /* Tema: segue o sistema (prefers-color-scheme), salvo escolha no botao
+       "Tema", guardada em data-tema no <html> (claro | escuro). */
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-tema="claro"]) {
         --fundo: #16181b;
         --fundo-campo: #1d2024;
         --texto: #e4e6e9;
@@ -92,6 +94,20 @@
         --ok: #8fd19b;
         color-scheme: dark;
       }
+    }
+    :root[data-tema="escuro"] {
+      --fundo: #16181b;
+      --fundo-campo: #1d2024;
+      --texto: #e4e6e9;
+      --texto-suave: #a2a7ae;
+      --linha: #33373d;
+      --linha-forte: #4a4f57;
+      --acento: #8db4ec;
+      --acento-texto: #10213a;
+      --acento-suave: #1e2a3b;
+      --erro: #f08f86;
+      --ok: #8fd19b;
+      color-scheme: dark;
     }
 
     * { box-sizing: border-box; }
@@ -129,6 +145,8 @@
     }
     .trilha a { text-decoration: none; }
     .trilha a:hover { text-decoration: underline; }
+    .trilha { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+    .tema { padding: 0.15rem 0.5rem; font-size: 0.78rem; }
 
     h1 {
       margin: 0.25rem 0 0.25rem;
@@ -202,8 +220,22 @@
        para o teclado nao cobrir os botoes (ver ajustarEspacoTeclado) */
     body {
       --keyboard-accent-color: var(--acento);
-      --keycap-small-font-size: 1rem;
+      /* Teclado compacto: teclas mais baixas e fontes menores, mesma quantidade de funcoes */
+      --keycap-height: 30px;
+      --keycap-max-width: 44px;
+      --keycap-gap: 3px;
+      --keycap-font-size: 15px;
+      --keycap-small-font-size: 10.5px;
+      --keycap-extra-small-font-size: 9px;
+      --keycap-shift-font-size: 10px;
+      --keycap-glyph-size: 14px;
+      --keyboard-toolbar-font-size: 100%;
+      --keyboard-padding-top: 3px;
+      --keyboard-padding-bottom: 2px;
     }
+    /* MathLive imprime as abas e os botoes de acao com tamanhos proprios */
+    .MLK__toolbar .left > div { padding: 2px 8px; }
+    .MLK__toolbar .right .action { width: 28px; height: 28px; }
     body.com-teclado { padding-bottom: var(--altura-teclado, 0px); }
 
     /* Ferramentas rapidas (recentes e cores) */
@@ -571,7 +603,8 @@
       /* Teclado no celular: rotulos longos (unidades, equacoes prontas) menores
          e cortados na borda da tecla, sem invadir a vizinha */
       .MLK__keycap { overflow: hidden; }
-      .MLK__keycap.small { font-size: 0.62rem !important; }
+      .MLK__keycap.small { font-size: 0.55rem !important; }
+      body { --keycap-height: 34px; }                 /* um pouco mais alto para o dedo */
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -591,7 +624,8 @@
 <body>
   <main class="pagina">
 
-    <p class="trilha"><a href="../materiais.html#ferramentas">LQTSM · Materiais › Ferramentas</a></p>
+    <p class="trilha"><a href="../materiais.html#ferramentas">LQTSM · Materiais › Ferramentas</a>
+      <button type="button" class="discreto tema" id="btn-tema" title="Alternar tema claro, escuro ou automático">Tema: automático</button></p>
     <h1>Editor de equações</h1>
     <p class="intro">Cada linha é um passo da demonstração: a equação à esquerda, a justificativa à direita.
       <kbd>/</kbd> cria fração, <kbd>^</kbd> e <kbd>_</kbd> criam expoente e índice, <kbd>\</kbd> abre um comando
@@ -733,7 +767,9 @@
     const ESCALA_PNG = 4;                          // PNG com 4x a resolucao do SVG
     const MARGEM_PX = 4;                           // margem em volta da equacao no SVG (x4 no PNG)
     const CHAVE_HISTORICO = "lqtsm-editor-equacoes-historico-v1";
-    const TAMANHO_RECENTES = 10;                   // ferramentas recentes fixadas
+    const TAMANHO_RECENTES = 30;                   // ferramentas recentes na barra da pagina
+    const RECENTES_NO_TECLADO = 12;                // quantas cabem na linha do teclado virtual
+    const CHAVE_TEMA = "lqtsm-editor-equacoes-tema-v1";
     const CHAVE_RECENTES = "lqtsm-editor-equacoes-recentes-v1";
     const CHAVE_DEMONSTRACAO = "lqtsm-editor-equacoes-demonstracao-v1";
     const NOME_ARQUIVO_DEMO = "demonstracao";      // demonstracao.svg, demonstracao.png
@@ -1146,7 +1182,7 @@
     // Linha de recentes para o teclado virtual (primeira linha de cada aba)
     function abasComRecentes() {
       const abas = isolarRedondo(ABAS_TECLADO);
-      const recentes = lerRecentes().map((l) => ({ ...TECLAS_POR_LATEX.get(l) }));
+      const recentes = lerRecentes().slice(0, RECENTES_NO_TECLADO).map((l) => ({ ...TECLAS_POR_LATEX.get(l) }));
       if (!recentes.length) return abas;
       const linha = recentes;                       // primeira linha de cada aba
       return abas.map((aba) => (typeof aba === "string" ? aba : { ...aba, rows: [linha, ...aba.rows] }));
@@ -2212,6 +2248,28 @@
         areaLatex.focus();
       }
     }
+
+    /* =====================================================================
+       TEMA (automatico / claro / escuro)
+       ===================================================================== */
+    function aplicarTema(tema) {
+      if (tema === "claro" || tema === "escuro") document.documentElement.dataset.tema = tema;
+      else { delete document.documentElement.dataset.tema; tema = "automático"; }
+      $("btn-tema").textContent = "Tema: " + tema;
+      $("btn-tema").setAttribute("aria-label", "Tema atual: " + tema + ". Clique para trocar.");
+    }
+    (function iniciarTema() {
+      let tema = "automático";
+      try { tema = localStorage.getItem(CHAVE_TEMA) || tema; } catch (e) { /* segue o sistema */ }
+      aplicarTema(tema);
+      $("btn-tema").addEventListener("click", () => {
+        const ordem = ["automático", "claro", "escuro"];
+        const atual = document.documentElement.dataset.tema || "automático";
+        const proximo = ordem[(ordem.indexOf(atual) + 1) % ordem.length];
+        aplicarTema(proximo);
+        try { localStorage.setItem(CHAVE_TEMA, proximo); } catch (e) { /* so nesta visita */ }
+      });
+    })();
 
     ligarEventos();
     desenharHistorico();
