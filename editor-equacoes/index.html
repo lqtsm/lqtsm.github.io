@@ -179,6 +179,28 @@
       color: var(--texto-suave);
     }
 
+    .sob-campo {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      margin-top: 0.6rem;
+    }
+    .sob-campo .dica { margin: 0; flex: 1 1 280px; }
+    #btn-teclado[aria-pressed="true"] {
+      color: var(--acento-texto);
+      background: var(--acento);
+      border-color: var(--acento);
+    }
+
+    /* Teclado virtual do MathLive: acento do site e espaco no fim da pagina
+       para o teclado nao cobrir os botoes (ver ajustarEspacoTeclado) */
+    body {
+      --keyboard-accent-color: var(--acento);
+      --keycap-small-font-size: 1rem;
+    }
+    body.com-teclado { padding-bottom: var(--altura-teclado, 0px); }
+
     .lugar-campo {
       min-height: 5.5rem;
       /* O conteudo interno do MathLive pode passar da borda ao redimensionar;
@@ -373,6 +395,10 @@
       math-field { font-size: 1.6rem; padding: 0.75rem; }
       .acoes button { flex: 1 1 calc(50% - 0.5rem); }
       .separador { display: none; }
+      /* Teclado no celular: rotulos longos (unidades, equacoes prontas) menores
+         e cortados na borda da tecla, sem invadir a vizinha */
+      .MLK__keycap { overflow: hidden; }
+      .MLK__keycap.small { font-size: 0.62rem !important; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -400,6 +426,12 @@
     <!-- O <math-field> e criado pelo script depois de apontar as fontes do
          MathLive para o CDN (ver iniciarCampo). -->
     <div id="lugar-campo" class="lugar-campo"></div>
+    <div class="sob-campo">
+      <button type="button" id="btn-teclado" aria-pressed="false" aria-controls="lugar-campo" hidden>
+        <span aria-hidden="true">⌨</span> Teclado de símbolos</button>
+      <span class="dica">Abas: básico, funções, cálculo, grego, físico-química, quântica, relações e setas,
+        matrizes e texto. Segure uma tecla para ver variantes; <kbd>⇧</kbd> troca minúsculas e maiúsculas.</span>
+    </div>
 
     <!-- LaTeX -->
     <div class="bloco">
@@ -466,6 +498,227 @@
     const URL_MATHJAX = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js";
     const URL_FONTES_MATHLIVE = "https://cdn.jsdelivr.net/npm/mathlive@0.110.0/fonts";
     const ESPERA_MATHLIVE_MS = 12000;              // desiste do MathLive depois disso
+
+    /* =====================================================================
+       TECLADO VIRTUAL (abas proprias, no lugar das do MathLive)
+       ---------------------------------------------------------------------
+       Cada aba e uma lista de linhas; cada tecla e um objeto do MathLive:
+         latex     o que a tecla insere (e mostra, se nao houver label)
+         label     texto/HTML da tecla, quando o LaTeX ficaria grande demais
+         tooltip   dica ao passar o mouse
+         shift     o que a tecla vira com [shift] apertado
+         variants  opcoes que aparecem ao segurar a tecla
+         command   comando do MathLive (ex.: acrescentar linha na matriz)
+       Marcadores no LaTeX:  #@ = o que esta antes do cursor (ou a selecao),
+       #0 = a selecao, #? = uma caixinha vazia para preencher.
+       Convencoes seguidas: d e partial em redondo (\mathrm{d}), estado
+       padrao com \ominus, exponencial como potencia e^{...}, descritores
+       em \mathrm{}, sen/tg/arcsen em portugues.
+       ===================================================================== */
+    const PEQ = "small";                            // classe de tecla com rotulo menor
+    const SEP = { class: "separator w5" };          // meio espaco entre grupos
+    const tecla = (latex, tooltip, extra = {}) => ({ latex, tooltip, ...extra });
+    const peq = (latex, tooltip, extra = {}) => ({ latex, tooltip, class: PEQ, ...extra });
+
+    // Linha de navegacao repetida no fim de cada aba
+    const NAVEGACAO = [
+      "[left]", "[right]", "[up]", "[down]", SEP,
+      { label: "espaço", latex: "\\,", class: PEQ, tooltip: "Espaço fino (\\,)", width: 1.5,
+        variants: [{ latex: "\\;", label: "médio" }, { latex: "\\quad", label: "quad" }, { latex: "\\qquad", label: "qquad" }] },
+      SEP, "[backspace]", "[hide-keyboard]",
+    ];
+
+    // Descritores usuais (redondos) para indices e expoentes
+    const DESCRITORES = ["r", "f", "c", "m", "red", "ox", "sol", "abs", "calc", "obs", "máx", "min", "eq", "vap", "fus", "sub", "ads", "SHE"]
+      .map((d) => ({ latex: "#@_{\\mathrm{" + d + "}}", label: d }));
+
+    const ABAS_TECLADO = [
+      {
+        label: "123", tooltip: "Básico: números, frações, potências e parênteses",
+        rows: [
+          ["[7]", "[8]", "[9]", tecla("\\frac{#@}{#?}", "Fração (ou digite /)"), SEP,
+            tecla("#@^{2}", "Ao quadrado"), tecla("#@^{#?}", "Potência (ou ^)"), tecla("#@_{#?}", "Índice (ou _)"),
+            tecla("#@_{#?}^{#?}", "Índice e potência"), tecla("\\sqrt{#0}", "Raiz quadrada"), tecla("\\sqrt[#?]{#0}", "Raiz n-ésima")],
+          ["[4]", "[5]", "[6]", tecla("\\times", "Vezes", { variants: ["\\cdot", "\\ast", "\\star", "\\circ"] }), SEP,
+            tecla("\\cdot", "Ponto de multiplicação"), tecla("\\pm", "Mais ou menos", { variants: ["\\mp"] }),
+            tecla("\\left(#0\\right)", "Parênteses"), tecla("\\left[#0\\right]", "Colchetes"),
+            tecla("\\left\\lbrace #0\\right\\rbrace", "Chaves"), tecla("\\left|#0\\right|", "Módulo")],
+          ["[1]", "[2]", "[3]", "[-]", SEP,
+            tecla("\\div", "Dividido"), "[=]", tecla("\\approx", "Aproximadamente"), tecla("\\neq", "Diferente"),
+            tecla("<", "Menor", { shift: "\\le" }), tecla(">", "Maior", { shift: "\\ge" })],
+          ["[0]", "[.]", peq("\\times10^{#?}", "Notação científica"), "[+]", SEP,
+            tecla("\\%", "Por cento"), tecla("#@^{-1}", "Inverso"), tecla("#@'", "Linha (derivada)"), tecla("#@!", "Fatorial"),
+            peq("\\mathrm{#?}", "Texto redondo (\\mathrm): descritores, unidades", { label: "<span style='font-family:serif'>rm</span>" }),
+            peq("\\text{#?}", "Palavra (\\text)", { label: "abc" })],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "f(x)", tooltip: "Funções: trigonométricas em português, log, exponencial",
+        rows: [
+          [peq("\\operatorname{sen}", "Seno", { shift: peq("\\operatorname{arcsen}", "Arco-seno") }),
+            peq("\\cos", "Cosseno", { shift: peq("\\arccos", "Arco-cosseno") }),
+            peq("\\operatorname{tg}", "Tangente", { shift: peq("\\operatorname{arctg}", "Arco-tangente") }),
+            peq("\\operatorname{cotg}", "Cotangente"), peq("\\sec", "Secante"), peq("\\operatorname{cossec}", "Cossecante"), SEP,
+            peq("\\operatorname{senh}", "Seno hiperbólico"), peq("\\cosh", "Cosseno hiperbólico"), peq("\\operatorname{tgh}", "Tangente hiperbólica"), "[shift]"],
+          [peq("\\ln", "Logaritmo natural"), peq("\\log", "Logaritmo decimal"), peq("\\log_{#?}", "Logaritmo na base"),
+            tecla("e^{#?}", "Exponencial (e^x)"), tecla("10^{#?}", "Potência de 10"), SEP,
+            peq("\\ln\\left(#0\\right)", "ln( )"), peq("\\operatorname{sen}^{2}", "Seno ao quadrado"),
+            peq("\\cos^{2}", "Cosseno ao quadrado"), tecla("\\mathrm{e}", "Número de Euler (redondo)"), tecla("\\pi", "Pi")],
+          [peq("f\\left(#?\\right)", "f( )"), peq("g\\left(#?\\right)", "g( )"), peq("f^{-1}", "Inversa"), peq("f\\circ g", "Composta"), SEP,
+            peq("\\max", "Máximo"), peq("\\min", "Mínimo"), peq("\\lfloor #0\\rfloor", "Piso"), peq("\\lceil #0\\rceil", "Teto"),
+            peq("\\binom{#?}{#?}", "Binomial"), peq("\\operatorname{#?}", "Nome de função qualquer")],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "∫ d", tooltip: "Cálculo: derivadas, integrais, somatórios, operadores vetoriais",
+        rows: [
+          [peq("\\frac{\\mathrm{d}#?}{\\mathrm{d}#?}", "Derivada"), peq("\\frac{\\mathrm{d}^{2}#?}{\\mathrm{d}#?^{2}}", "Derivada segunda"),
+            peq("\\frac{\\partial #?}{\\partial #?}", "Derivada parcial"), peq("\\frac{\\partial^{2}#?}{\\partial #?^{2}}", "Parcial segunda"),
+            peq("\\frac{\\partial^{2}#?}{\\partial #?\\,\\partial #?}", "Parcial mista"),
+            peq("\\left(\\frac{\\partial #?}{\\partial #?}\\right)_{#?}", "Parcial com variável constante (termodinâmica)"), SEP,
+            tecla("\\mathrm{d}", "d redondo (diferencial)"), tecla("\\partial", "Parcial"), tecla("\\delta", "Variação infinitesimal"), tecla("\\Delta", "Variação")],
+          [peq("\\int #?\\,\\mathrm{d}#?", "Integral indefinida"), peq("\\int_{#?}^{#?}#?\\,\\mathrm{d}#?", "Integral definida"),
+            peq("\\iint #?\\,\\mathrm{d}#?\\,\\mathrm{d}#?", "Integral dupla"), peq("\\iiint #?\\,\\mathrm{d}#?\\,\\mathrm{d}#?\\,\\mathrm{d}#?", "Integral tripla"),
+            peq("\\oint #?\\,\\mathrm{d}#?", "Integral de linha fechada"), peq("\\left.#0\\right|_{#?}^{#?}", "Avaliar entre limites"), SEP,
+            peq("\\sum_{#?}^{#?}", "Somatório"), peq("\\sum_{#?=#?}^{\\infty}", "Série"), peq("\\prod_{#?}^{#?}", "Produtório"),
+            peq("\\lim_{#?\\to #?}", "Limite")],
+          [tecla("\\nabla", "Nabla (gradiente)"), peq("\\nabla^{2}", "Laplaciano"), peq("\\nabla\\cdot", "Divergente"), peq("\\nabla\\times", "Rotacional"), SEP,
+            tecla("\\dot{#@}", "Derivada temporal"), tecla("\\ddot{#@}", "Derivada temporal segunda"), tecla("#@''", "Duas linhas"),
+            tecla("\\infty", "Infinito"), tecla("\\to", "Tende a"), peq("\\mathrm{d}#?", "Diferencial dx")],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "αβγ", tooltip: "Letras gregas (⇧ para maiúsculas; segure para variantes)",
+        rows: [
+          [tecla("\\alpha"), tecla("\\beta"), tecla("\\gamma", "", { shift: "\\Gamma" }), tecla("\\delta", "", { shift: "\\Delta" }),
+            tecla("\\varepsilon", "", { variants: ["\\epsilon"] }), tecla("\\zeta"), tecla("\\eta"),
+            tecla("\\theta", "", { shift: "\\Theta", variants: ["\\vartheta"] }), tecla("\\iota"), tecla("\\kappa")],
+          [tecla("\\lambda", "", { shift: "\\Lambda" }), tecla("\\mu"), tecla("\\nu"), tecla("\\xi", "", { shift: "\\Xi" }),
+            tecla("\\pi", "", { shift: "\\Pi", variants: ["\\varpi"] }), tecla("\\rho", "", { variants: ["\\varrho"] }),
+            tecla("\\sigma", "", { shift: "\\Sigma", variants: ["\\varsigma"] }), tecla("\\tau"),
+            tecla("\\upsilon", "", { shift: "\\Upsilon" }), tecla("\\varphi", "", { shift: "\\Phi", variants: ["\\phi"] })],
+          ["[shift]", tecla("\\chi"), tecla("\\psi", "", { shift: "\\Psi" }), tecla("\\omega", "", { shift: "\\Omega" }), SEP,
+            tecla("\\hbar", "h cortado"), tecla("\\ell", "l cursivo"), tecla("\\nabla"), tecla("\\aleph"), tecla("\\Re"), tecla("\\Im")],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "ΔG<sup>⊖</sup>", tooltip: "Físico-química: estado padrão, descritores, constantes, unidades e equações prontas",
+        rows: [
+          [tecla("#@^{\\ominus}", "Estado padrão (⊖)"), peq("\\Delta_{\\mathrm{r}}", "Δ de reação"), peq("\\Delta_{\\mathrm{f}}", "Δ de formação"),
+            peq("\\Delta_{\\mathrm{c}}", "Δ de combustão"), peq("\\Delta_{\\mathrm{vap}}", "Δ de vaporização"), peq("\\Delta_{\\mathrm{fus}}", "Δ de fusão"),
+            peq("\\Delta_{\\mathrm{sol}}", "Δ de solvatação"),
+            peq("#@_{\\mathrm{#?}}", "Índice redondo (segure: red, ox, sol...)", { variants: DESCRITORES }),
+            tecla("#@_{\\mathrm{m}}", "Grandeza molar"), tecla("#@^{\\ddagger}", "Estado de transição (‡)")],
+          [tecla("R", "Constante dos gases"), peq("k_{\\mathrm{B}}", "Constante de Boltzmann"), peq("N_{\\mathrm{A}}", "Constante de Avogadro"),
+            tecla("F", "Constante de Faraday"), tecla("h", "Constante de Planck"), tecla("\\hbar"), peq("p^{\\ominus}", "Pressão padrão"),
+            peq("\\left[#?\\right]", "Concentração [ ]"), peq("a_{#?}", "Atividade"), tecla("\\rightleftharpoons", "Equilíbrio")],
+          [peq("\\,\\mathrm{K}", "kelvin"), peq("\\,\\mathrm{V}", "volt"), peq("\\,\\mathrm{kJ\\,mol^{-1}}", "kJ/mol"), peq("\\,\\mathrm{kcal\\,mol^{-1}}", "kcal/mol"),
+            peq("\\,\\mathrm{J\\,K^{-1}\\,mol^{-1}}", "J/(K mol)"), peq("\\,\\mathrm{mol\\,L^{-1}}", "mol/L"), peq("\\,\\mathrm{bar}", "bar"),
+            peq("\\,\\mathrm{eV}", "elétron-volt"), peq("\\,\\mathrm{cm^{-1}}", "número de onda"), peq("\\,\\text{Å}", "ångström")],
+          [{ label: "ΔG = −RT ln K", latex: "\\Delta_{\\mathrm{r}}G^{\\ominus}=-RT\\ln K", class: PEQ, width: 2, tooltip: "Energia de Gibbs padrão e constante de equilíbrio" },
+            { label: "ΔG = ΔH − TΔS", latex: "\\Delta G=\\Delta H-T\\Delta S", class: PEQ, width: 2, tooltip: "Gibbs-Helmholtz (forma integrada)" },
+            { label: "ΔG = −nFE", latex: "\\Delta_{\\mathrm{r}}G^{\\ominus}=-nFE^{\\ominus}", class: PEQ, width: 2, tooltip: "Gibbs e potencial padrão" },
+            { label: "Nernst", latex: "E=E^{\\ominus}-\\frac{RT}{nF}\\ln Q", class: PEQ, width: 1.5, tooltip: "Equação de Nernst" },
+            { label: "Arrhenius", latex: "k=Ae^{-E_{\\mathrm{a}}/RT}", class: PEQ, width: 1.5, tooltip: "Equação de Arrhenius" },
+            { label: "μ = μ⊖ + RT ln a", latex: "\\mu_{#?}=\\mu_{#?}^{\\ominus}+RT\\ln a_{#?}", class: PEQ, width: 2, tooltip: "Potencial químico" }],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "ψ⟩", tooltip: "Quântica e vetores: operadores, bra-ket, acentos",
+        rows: [
+          [tecla("\\vec{#@}", "Vetor"), tecla("\\hat{#@}", "Operador / versor"), tecla("\\bar{#@}", "Barra"), tecla("\\tilde{#@}", "Til"),
+            tecla("\\overline{#@}", "Média / conjugado"), tecla("\\boldsymbol{#@}", "Negrito (vetor)"), SEP,
+            tecla("#@^{\\dagger}", "Adjunto (†)"), tecla("#@^{*}", "Complexo conjugado"), tecla("#@^{\\mathrm{T}}", "Transposta")],
+          [peq("|#?\\rangle", "Ket"), peq("\\langle #?|", "Bra"), peq("\\langle #?|#?\\rangle", "Braket"), peq("\\langle #?|#?|#?\\rangle", "Elemento de matriz"),
+            peq("\\langle #?\\rangle", "Valor esperado"), peq("\\left[#?,#?\\right]", "Comutador"), SEP,
+            tecla("\\otimes", "Produto tensorial"), tecla("\\oplus", "Soma direta"), peq("\\left\\Vert #?\\right\\Vert", "Norma")],
+          [tecla("\\hbar"), tecla("\\psi", "", { shift: "\\Psi" }), tecla("\\phi", "", { shift: "\\Phi" }), peq("\\hat{H}", "Hamiltoniano"),
+            peq("\\hat{H}\\psi=E\\psi", "Equação de Schrödinger independente do tempo"),
+            peq("\\mathrm{i}\\hbar\\frac{\\partial\\Psi}{\\partial t}=\\hat{H}\\Psi", "Equação de Schrödinger dependente do tempo"),
+            peq("-\\frac{\\hbar^{2}}{2m}\\nabla^{2}", "Energia cinética"), tecla("\\mathrm{i}", "Unidade imaginária (redonda)"),
+            peq("\\delta_{#?#?}", "Delta de Kronecker"), "[shift]"],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "≤ ⇌", tooltip: "Relações, setas e lógica",
+        rows: [
+          [tecla("\\equiv", "Idêntico / definido"), tecla("\\approx"), tecla("\\simeq"), tecla("\\sim"), tecla("\\propto", "Proporcional"),
+            tecla("\\neq"), tecla("\\ll"), tecla("\\gg"), tecla("\\le"), tecla("\\ge")],
+          [tecla("\\rightarrow", "Seta (reação)"), tecla("\\leftarrow"), tecla("\\leftrightarrow"), tecla("\\rightleftharpoons", "Equilíbrio"),
+            tecla("\\Rightarrow", "Implica"), tecla("\\Leftrightarrow", "Se e somente se"), tecla("\\uparrow", "Gás"), tecla("\\downarrow", "Precipitado"),
+            peq("\\xrightarrow{#?}", "Seta com condição"), tecla("\\mapsto")],
+          [tecla("\\in"), tecla("\\notin"), tecla("\\subset"), tecla("\\subseteq"), tecla("\\cup"), tecla("\\cap"),
+            tecla("\\forall"), tecla("\\exists"), tecla("\\therefore", "Portanto"), tecla("\\because", "Porque")],
+          [tecla("#@^{\\circ}", "Grau (ângulo)"), tecla("\\angle", "Ângulo"), tecla("\\perp", "Perpendicular"), tecla("\\parallel", "Paralelo"),
+            tecla("\\cdots"), tecla("\\ldots"), tecla("\\vdots"), tecla("\\ddots"), tecla("\\neg"), tecla("\\land", "", { variants: ["\\lor"] })],
+          NAVEGACAO,
+        ],
+      },
+      {
+        label: "[ ]", tooltip: "Matrizes, casos e estrutura (+linha e +coluna dentro da matriz)",
+        rows: [
+          [peq("\\begin{pmatrix}#?&#?\\\\#?&#?\\end{pmatrix}", "Matriz 2×2 ( )"),
+            peq("\\begin{pmatrix}#?&#?&#?\\\\#?&#?&#?\\\\#?&#?&#?\\end{pmatrix}", "Matriz 3×3 ( )"),
+            peq("\\begin{bmatrix}#?&#?\\\\#?&#?\\end{bmatrix}", "Matriz 2×2 [ ]"),
+            peq("\\begin{vmatrix}#?&#?\\\\#?&#?\\end{vmatrix}", "Determinante 2×2"),
+            peq("\\begin{vmatrix}#?&#?&#?\\\\#?&#?&#?\\\\#?&#?&#?\\end{vmatrix}", "Determinante 3×3"),
+            peq("\\begin{pmatrix}#?\\\\#?\\\\#?\\end{pmatrix}", "Vetor coluna"),
+            peq("\\begin{cases}#?&#?\\\\#?&#?\\end{cases}", "Casos (função por partes)")],
+          [{ label: "+ linha", command: ["addRowAfter"], class: PEQ, tooltip: "Acrescentar linha na matriz" },
+            { label: "+ coluna", command: ["addColumnAfter"], class: PEQ, tooltip: "Acrescentar coluna na matriz" },
+            { label: "− linha", command: ["removeRow"], class: PEQ, tooltip: "Remover a linha do cursor" },
+            { label: "− coluna", command: ["removeColumn"], class: PEQ, tooltip: "Remover a coluna do cursor" }, SEP,
+            peq("\\underbrace{#@}_{#?}", "Chave por baixo"), peq("\\overbrace{#@}^{#?}", "Chave por cima"),
+            peq("\\overset{#?}{#@}", "Símbolo em cima"), peq("\\underset{#?}{#@}", "Símbolo embaixo"), peq("\\boxed{#@}", "Caixa")],
+          [peq("\\mathrm{#?}", "Texto redondo", { label: "<span style='font-family:serif'>rm</span>" }),
+            peq("\\text{#?}", "Palavra", { label: "abc" }),
+            peq("\\mathbf{#?}", "Negrito", { label: "<b style='font-family:serif'>B</b>" }),
+            peq("\\mathit{#?}", "Itálico", { label: "<i style='font-family:serif'>I</i>" }),
+            peq("\\mathcal{#?}", "Caligráfico", { label: "𝒞" }), peq("\\mathbb{#?}", "Conjuntos (ℝ, ℂ)", { label: "ℝ" }), SEP,
+            peq("\\quad", "Espaço largo", { label: "quad" }), peq("\\,", "Espaço fino", { label: "\\," }),
+            peq("\\;", "Espaço médio", { label: "\\;" }), peq("\\!", "Espaço negativo", { label: "\\!" })],
+          NAVEGACAO,
+        ],
+      },
+      "alphabetic",
+    ];
+
+    // Aplica as abas e liga o botao da pagina. O botao so aparece com o
+    // MathLive carregado; no celular o teclado tambem abre sozinho ao tocar.
+    function configurarTeclado() {
+      const teclado = window.mathVirtualKeyboard;
+      if (!teclado) return;
+      teclado.layouts = ABAS_TECLADO;
+      teclado.editToolbar = "default";              // desfazer, refazer, recortar, copiar, colar
+
+      const botao = $("btn-teclado");
+      botao.hidden = false;
+      const atualizar = () => {
+        const visivel = !!teclado.visible;
+        botao.setAttribute("aria-pressed", String(visivel));
+        // Reserva o espaco do teclado no fim da pagina, para nada ficar coberto
+        const altura = visivel && teclado.boundingRect ? Math.ceil(teclado.boundingRect.height) : 0;
+        document.body.style.setProperty("--altura-teclado", altura + "px");
+        document.body.classList.toggle("com-teclado", visivel);
+      };
+      teclado.addEventListener("geometrychange", atualizar);
+      teclado.addEventListener("virtual-keyboard-toggle", atualizar);
+      botao.addEventListener("click", () => {
+        if (teclado.visible) {
+          teclado.hide();
+        } else {
+          campo.focus();
+          teclado.show();
+        }
+        setTimeout(atualizar, 350);
+      });
+    }
 
     /* =====================================================================
        CONVENCOES (funcoes puras sobre a string LaTeX)
@@ -688,8 +941,7 @@
       if (promessaMathJax) return promessaMathJax;
       promessaMathJax = new Promise((resolver, rejeitar) => {
         window.MathJax = {
-          loader: { load: ["[tex]/ams", "[tex]/boldsymbol", "[tex]/mathtools"] },
-          tex: { packages: { "[+]": ["ams", "boldsymbol", "mathtools"] } },
+          // O tex-svg ja traz o ams; boldsymbol, mathtools etc. entram sozinhos (autoload)
           svg: { fontCache: "none" },               // SVG autonomo, sem <use> globais
           startup: {
             typeset: false,
@@ -981,6 +1233,7 @@
         campo.smartFence = true;
         campo.addEventListener("input", campoParaTexto);
         campoPronto = true;
+        configurarTeclado();
         if (areaLatex.value) textoParaCampo();      // texto digitado antes de carregar
         campo.focus();
       } catch (e) {
