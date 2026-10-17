@@ -1008,14 +1008,23 @@
        ---------------------------------------------------------------------
        O MathLive faz o que se digita herdar o estilo do caractere anterior:
        depois de \mathrm{d}, um x digitado sairia redondo (\mathrm{dx}).
-       Envolver em chaves, {\mathrm{d}}, fecha o estilo: d redondo, x italico.
-       As chaves extras sao removidas do LaTeX mostrado e exportado
-       (limparLatexDoCampo). Nao mexe em indices/expoentes (_{\mathrm{r}}).
+       Duas formas fecham o estilo (d redondo, x italico):
+       - tecla d solta: \mathrm{d}{} (grupo vazio depois). Envolver em chaves,
+         {\mathrm{d}}, tambem fechava, mas o MathLive desenhava o espaco do
+         "=" depois do d ("=d H");
+       - d seguido de caixinha (integral, derivada): {\mathrm{d}}#? , porque
+         com o grupo vazio o Tab parava nele e sobrava uma caixinha.
+       limparLatexDoCampo tira as chaves e o {} da saida.
+       Nao mexe em indices/expoentes (_{\mathrm{r}}).
        --------------------------------------------------------------------- */
     function isolarRedondoNoLatex(latex) {
-      return latex
-        .replace(/\\mathrm\{([^{}]*)\}/g, "{\\mathrm{$1}}")
-        .replace(/([_^])\{\{(\\mathrm\{[^{}]*\})\}\}/g, "$1{$2}");   // _{\mathrm{r}} fica como esta
+      return latex.replace(/\\mathrm\{([^{}]*)\}(?!\{\})/g, (m, x, pos) => {
+        const antes = latex.slice(Math.max(0, pos - 2), pos);
+        if (/[_^]\{$/.test(antes)) return m;                        // _{\mathrm{r}} fica como esta
+        // seguido de caixinha (dx em integral/derivada): {\mathrm{d}}#? ;
+        // solto (tecla d, e, i): \mathrm{d}{}, que nao desloca o espaco do "="
+        return /^#[@0?]/.test(latex.slice(pos + m.length)) ? "{" + m + "}" : m + "{}";
+      });
     }
     function isolarRedondo(abas) {
       const visitar = (k) => {
@@ -1451,7 +1460,8 @@
     function limparLatexDoCampo(latex) {
       return latex
         .replace(/\\operatorname\{\\mathrm\{([^{}]*)\}\}/g, "\\operatorname{$1}")
-        .replace(/(^|[^_^])\{(\\mathrm\{[^{}]*\})\}/g, "$1$2");   // {\mathrm{d}} -> \mathrm{d} (mantem _{\mathrm{r}})
+        .replace(/(^|[^_^])\{(\\mathrm\{[^{}]*\})\}/g, "$1$2")    // {\mathrm{d}} -> \mathrm{d} (mantem _{\mathrm{r}})
+        .replace(/(\\mathrm\{[^{}]*\})\{\}/g, "$1");               // \mathrm{d}{} -> \mathrm{d}
     }
 
     // Caixinhas vazias do MathLive (\placeholder{}) nao existem no LaTeX
