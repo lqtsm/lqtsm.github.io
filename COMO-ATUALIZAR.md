@@ -259,8 +259,13 @@ O **editor de equações** fica em `editor-equacoes/index.html` (endereço
 dentro dele, que carrega o MathLive (campo visual) e o MathJax (exportação) do
 `cdn.jsdelivr.net`, com versões fixadas no próprio arquivo. Para atualizar uma
 biblioteca, troque o número da versão nas URLs (`mathlive@…` e `mathjax@…`) e
-teste antes de publicar. O histórico de equações fica no navegador de cada
-pessoa (localStorage); nada vai para o servidor.
+teste antes de publicar. O histórico de equações, as ferramentas recentes e o
+rascunho da demonstração ficam no navegador de cada pessoa (localStorage); nada
+vai para o servidor.
+
+Para mexer nas abas do teclado virtual, edite a constante `ABAS_TECLADO` no
+próprio `index.html` (cada tecla é `tecla("latex", "dica")`; `#0` marca onde a
+seleção entra). As cores da seleção estão em `CORES`.
 
 ## 4. Trocar e-mail, endereço, mapa ou menu
 
