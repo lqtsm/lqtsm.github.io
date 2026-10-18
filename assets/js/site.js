@@ -568,6 +568,15 @@
         "<div>" +
         '<h3 class="tutorial__titulo">' + esc(f.titulo) + "</h3>" +
         (f.resumo ? '<p class="tutorial__resumo">' + esc(f.resumo) + "</p>" : "") +
+        (f.downloads && f.downloads.length
+          ? '<div class="tutorial__downloads">' +
+            f.downloads.map(function (d) {
+              return '<a class="botao botao--secundario" href="' + esc(d.link) + '" download>' +
+                icone("baixar") + esc(d.rotulo) + "</a>";
+            }).join(" ") +
+            (f.notaDownload ? '<span class="tutorial__nota">' + esc(f.notaDownload) + "</span>" : "") +
+            "</div>"
+          : "") +
         "</div>" +
         '<a class="botao" href="' + esc(f.link) + '"' +
         (externo ? ' target="_blank" rel="noopener"' : "") + ">" +

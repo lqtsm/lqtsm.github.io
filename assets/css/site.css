@@ -1082,6 +1082,22 @@ main {
   font-size: 0.98rem;
   color: var(--tinta-media);
 }
+/* Downloads de uma ferramenta (ex.: programa para Linux) */
+.tutorial__downloads {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.6rem;
+  margin-top: 0.9rem;
+}
+.tutorial__downloads .botao {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.88rem;
+}
+.tutorial__nota {
+  font-size: 0.85rem;
+  color: var(--tinta-media);
+}
 @media (max-width: 620px) {
   .tutorial {
     grid-template-columns: 1fr;
